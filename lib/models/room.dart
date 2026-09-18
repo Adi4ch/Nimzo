@@ -13,7 +13,7 @@ class NimzoRoom {
 
   NimzoRoom copyWith({String? id, String? name, String? subtitle, String? category, int? listenerCount, bool? featured, List<RoomSeat>? seats}) => NimzoRoom(id: id ?? this.id, name: name ?? this.name, subtitle: subtitle ?? this.subtitle, category: category ?? this.category, listenerCount: listenerCount ?? this.listenerCount, featured: featured ?? this.featured, seats: seats ?? this.seats);
 
-  factory NimzoRoom.fromMap(Map<String, dynamic> map) => NimzoRoom(id: map['id'] as String, name: map['name'] as String? ?? '', subtitle: map['subtitle'] as String? ?? '', category: map['category'] as String? ?? 'All', listenerCount: map['listener_count'] as int? ?? 0, featured: map['featured'] as bool? ?? false, seats: (map['seats'] as List<dynamic>? ?? []).map((item) => RoomSeat.fromMap(Map<String, dynamic>.from(item as Map))).toList());
+  factory NimzoRoom.fromMap(Map<String, dynamic> map) => NimzoRoom(id: map['id'] as String, name: map['name'] as String? ?? '', subtitle: map['subtitle'] as String? ?? '', category: map['category'] as String? ?? 'All', listenerCount: map['listener_count'] as int? ?? 0, featured: map['featured'] as bool? ?? map['is_featured'] as bool? ?? false, seats: ((map['seats'] ?? map['room_seats']) as List<dynamic>? ?? []).map((item) => RoomSeat.fromMap(Map<String, dynamic>.from(item as Map))).toList());
 
   Map<String, dynamic> toMap() => {'id': id, 'name': name, 'subtitle': subtitle, 'category': category, 'listener_count': listenerCount, 'featured': featured, 'seats': seats.map((item) => item.toMap()).toList()};
 }

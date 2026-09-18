@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 
 import 'app.dart';
+import 'config/supabase_bootstrap.dart';
 
-void main() => runApp(const NimzoApp());
+Future<void> main() async {
+	WidgetsFlutterBinding.ensureInitialized();
+	await SupabaseBootstrap.initialize();
+	runApp(const NimzoApp());
+}
