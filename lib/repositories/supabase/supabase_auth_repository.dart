@@ -26,18 +26,16 @@ class SupabaseAuthRepository implements AuthRepository {
 
   @override
   Future<AuthResponse> signIn(
-          {required String email, required String password}) =>
-      _client.auth.signInWithPassword(email: email, password: password);
+      {required String email, required String password}) async {
+    final response =
+        await _client.auth.signInWithPassword(email: email, password: password);
+    await _client.rpc('record_user_activity', params: {'event_code': 'login'});
+    return response;
+  }
 
   @override
   Future<void> resetPassword(String email) =>
       _client.auth.resetPasswordForEmail(email);
-
-  @override
-  Future<void> deleteAccount() async {
-    await _client.rpc('delete_my_account');
-    await _client.auth.signOut();
-  }
 
   @override
   Future<void> signOut() => _client.auth.signOut();

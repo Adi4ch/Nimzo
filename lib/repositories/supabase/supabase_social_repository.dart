@@ -15,22 +15,13 @@ class SupabaseSocialRepository implements SocialRepository {
   RealtimeChannel? _channel;
 
   @override
-  Future<List<SocialPost>> getFeed({bool followingOnly = false}) async {
+  Future<List<SocialPost>> getFeed() async {
     final userId = _client.auth.currentUser?.id;
     final blocked = userId == null ? const <String>[] : await getBlockedUsers();
-    var followed = <String>[];
-    if (followingOnly && userId != null) {
-      final followRows = await _client
-          .from('post_follows')
-          .select('following_id')
-          .eq('follower_id', userId);
-      followed =
-          followRows.map((row) => row['following_id'].toString()).toList();
-      if (followed.isEmpty) return const [];
-    }
-    var query = _client.from('social_posts').select();
-    if (followingOnly) query = query.inFilter('user_id', followed);
-    final rows = await query.order('created_at', ascending: false);
+    final rows = await _client
+        .from('social_posts')
+        .select()
+        .order('created_at', ascending: false);
     return rows
         .where((row) => !blocked.contains(row['user_id']))
         .map((row) => SocialPost.fromMap(row))
@@ -47,6 +38,7 @@ class SupabaseSocialRepository implements SocialRepository {
         .insert({'user_id': userId, 'text': text, 'image_url': imageUrl})
         .select()
         .single();
+    await _client.rpc('record_user_activity', params: {'event_code': 'post'});
     return SocialPost.fromMap(row);
   }
 
@@ -117,9 +109,8 @@ class SupabaseSocialRepository implements SocialRepository {
     final followerId = _client.auth.currentUser?.id;
     if (followerId == null)
       throw StateError('An authenticated user is required.');
-    await _client
-        .from('post_follows')
-        .upsert({'follower_id': followerId, 'following_id': userId});
+      await _client.rpc('follow_user', params: {'target_user': userId});
+    await _client.rpc('record_user_activity', params: {'event_code': 'follow'});
   }
 
   @override
@@ -181,8 +172,9 @@ class SupabaseSocialRepository implements SocialRepository {
   Future<void> addComment(NimzoComment comment) async {
     final userId = _client.auth.currentUser?.id;
     if (userId == null) throw StateError('An authenticated user is required.');
-    await _client.from('comments').insert(
-        {'post_id': comment.postId, 'user_id': userId, 'text': comment.text});
+      await _client.rpc('add_post_comment', params: {'target_post': comment.postId, 'comment_text': comment.text});
+    await _client
+        .rpc('record_user_activity', params: {'event_code': 'comment'});
   }
 
   @override

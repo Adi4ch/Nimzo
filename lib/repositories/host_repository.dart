@@ -11,4 +11,5 @@ abstract class HostRepository {
   Future<List<Map<String, dynamic>>> getRecentActivity(String userId);
   Future<List<Map<String, dynamic>>> getAgencies();
   Future<void> applyToAgency(String agencyId);
+  Future<void> respondToAgencyInvitation(String agencyId, bool accept);
 }
