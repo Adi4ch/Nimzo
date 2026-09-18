@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../models/room.dart';
 import '../../repositories/mock/demo_data.dart';
+import '../../repositories/repository_factory.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/room_card.dart';
 import '../../widgets/section_header.dart';
@@ -23,8 +25,33 @@ class HomeScreen extends StatelessWidget {
           ]),
         ),
         const SectionHeader('Featured Rooms'),
-        RoomCardRow(DemoData.featuredRooms),
+        FutureBuilder<List<NimzoRoom>>(
+          future: _loadFeaturedRooms(),
+          builder: (_, snapshot) => RoomCardRow(snapshot.data ?? DemoData.featuredRooms),
+        ),
         const SectionHeader('More Rooms'),
-        RoomCardRow(DemoData.moreRooms),
+        FutureBuilder<List<NimzoRoom>>(
+          future: _loadMoreRooms(),
+          builder: (_, snapshot) => RoomCardRow(snapshot.data ?? DemoData.moreRooms),
+        ),
       ]);
+
+  Future<List<NimzoRoom>> _loadFeaturedRooms() async {
+    try {
+      final rooms = await RepositoryFactory.rooms().getFeaturedRooms();
+      return rooms.isEmpty ? DemoData.featuredRooms : rooms.take(3).toList();
+    } catch (_) {
+      return DemoData.featuredRooms;
+    }
+  }
+
+  Future<List<NimzoRoom>> _loadMoreRooms() async {
+    try {
+      final rooms = await RepositoryFactory.rooms().getRooms();
+      final more = rooms.where((room) => !room.featured).toList();
+      return more.isEmpty ? DemoData.moreRooms : more;
+    } catch (_) {
+      return DemoData.moreRooms;
+    }
+  }
 }
