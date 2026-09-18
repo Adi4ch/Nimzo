@@ -5,18 +5,45 @@ abstract class RoomRepository {
   Future<List<NimzoRoom>> getFeaturedRooms();
   Future<List<NimzoRoom>> getRooms({String category = 'All'});
   Future<NimzoRoom?> getById(String id);
-  Future<NimzoRoom> createRoom({required String name, String subtitle = '', String category = 'Chat', String description = ''});
+  Future<NimzoRoom> createRoom(
+      {required String name,
+      String subtitle = '',
+      String category = 'Chat',
+      String description = '',
+      String? avatarUrl,
+      String? backgroundUrl,
+      String privacy = 'public',
+      String? password,
+      String announcement = '',
+      String theme = 'mint'});
   Future<List<RoomSeat>> getSeats(String roomId);
   Future<RoomSeat> joinSeat(String roomId, int position);
   Future<void> leaveRoom(String roomId);
   Stream<List<RoomSeat>> watchSeats(String roomId);
   Future<void> disposeRoom(String roomId);
   Stream<NimzoRoom> watchRoom(String roomId);
-  Future<NimzoRoom> updateRoomSettings({required String roomId, required String name, required String subtitle, required String description, String? backgroundUrl});
+  Future<NimzoRoom> updateRoomSettings(
+      {required String roomId,
+      required String name,
+      required String subtitle,
+      required String description,
+      String? avatarUrl,
+      String? backgroundUrl,
+      String privacy = 'public',
+      String? password,
+      String announcement = '',
+      String theme = 'mint'});
   Future<List<Map<String, dynamic>>> getActivities(String roomId);
-  Future<List<Map<String, dynamic>>> getRanking(String roomId, {String period = 'weekly'});
+  Future<List<Map<String, dynamic>>> getRanking(String roomId,
+      {String period = 'weekly'});
   Future<List<String>> getModerators(String roomId);
+  Future<List<Map<String, dynamic>>> getMembers(String roomId);
   Future<List<Map<String, dynamic>>> getSanctions(String roomId);
   Future<void> assignModerator(String roomId, String userId, bool assign);
-  Future<void> manageMember({required String roomId, required String userId, required String action, int? durationMinutes});
+  Future<void> manageMember(
+      {required String roomId,
+      required String userId,
+      required String action,
+      int? durationMinutes});
+  Future<void> unbanMember({required String roomId, required String userId});
 }
