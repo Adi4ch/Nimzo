@@ -15,6 +15,14 @@ class SupabaseSocialRepository implements SocialRepository {
   }
 
   @override
+  Future<SocialPost> createPost({required String text, String? imageUrl}) async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) throw StateError('An authenticated user is required.');
+    final row = await _client.from('social_posts').insert({'user_id': userId, 'text': text, 'image_url': imageUrl}).select().single();
+    return SocialPost.fromMap(row);
+  }
+
+  @override
   Future<List<NimzoComment>> getComments(String postId) async {
     final rows = await _client.from('comments').select().eq('post_id', postId).order('created_at');
     return rows.map(NimzoComment.fromMap).toList();
@@ -28,10 +36,24 @@ class SupabaseSocialRepository implements SocialRepository {
   }
 
   @override
+  Future<void> unlikePost(String postId) async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) throw StateError('An authenticated user is required.');
+    await _client.from('post_likes').delete().eq('post_id', postId).eq('user_id', userId);
+  }
+
+  @override
   Future<void> followUser(String userId) async {
     final followerId = _client.auth.currentUser?.id;
     if (followerId == null) throw StateError('An authenticated user is required.');
     await _client.from('post_follows').upsert({'follower_id': followerId, 'following_id': userId});
+  }
+
+  @override
+  Future<void> unfollowUser(String userId) async {
+    final followerId = _client.auth.currentUser?.id;
+    if (followerId == null) throw StateError('An authenticated user is required.');
+    await _client.from('post_follows').delete().eq('follower_id', followerId).eq('following_id', userId);
   }
 
   @override

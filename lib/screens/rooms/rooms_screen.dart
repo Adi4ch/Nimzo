@@ -67,7 +67,7 @@ class _RoomsScreenState extends State<RoomsScreen> {
               title: Text(rooms[index].name, style: const TextStyle(fontWeight: FontWeight.w800)),
               subtitle: const Text('Sing  |  Dance  |  Enjoy  |  2.4K', style: TextStyle(color: muted)),
               trailing: FilledButton(
-                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => VoiceRoomScreen(name: rooms[index].name))),
+                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => VoiceRoomScreen(roomId: rooms[index].id, name: rooms[index].name))),
                 style: FilledButton.styleFrom(backgroundColor: mint),
                 child: const Text('Join'),
               ),

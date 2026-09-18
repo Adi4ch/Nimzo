@@ -13,10 +13,13 @@ class SupabaseAuthRepository implements AuthRepository {
   Stream<AuthState> get authStateChanges => _client.auth.onAuthStateChange;
 
   @override
-  Future<AuthResponse> signUp({required String email, required String password}) => _client.auth.signUp(email: email, password: password);
+  Future<AuthResponse> signUp({required String email, required String password, String? displayName}) => _client.auth.signUp(email: email, password: password, data: {'display_name': displayName});
 
   @override
   Future<AuthResponse> signIn({required String email, required String password}) => _client.auth.signInWithPassword(email: email, password: password);
+
+  @override
+  Future<void> resetPassword(String email) => _client.auth.resetPasswordForEmail(email);
 
   @override
   Future<void> signOut() => _client.auth.signOut();

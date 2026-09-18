@@ -13,6 +13,7 @@ end $$;
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   display_name text not null default '',
+  bio text not null default '',
   avatar_url text,
   level integer not null default 1 check (level > 0),
   friends_count integer not null default 0 check (friends_count >= 0),

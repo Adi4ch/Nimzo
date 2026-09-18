@@ -1,8 +1,10 @@
 import '../../models/room.dart';
+import '../../models/room_seat.dart';
 import '../room_repository.dart';
 import 'demo_data.dart';
 
 class MockRoomRepository implements RoomRepository {
+  final Map<String, List<RoomSeat>> _seats = {};
   @override
   Future<List<NimzoRoom>> getFeaturedRooms() async => DemoData.featuredRooms;
 
@@ -16,4 +18,23 @@ class MockRoomRepository implements RoomRepository {
     }
     return null;
   }
+
+  @override
+  Future<NimzoRoom> createRoom({required String name, String subtitle = '', String category = 'Chat', String description = ''}) async => NimzoRoom(id: 'demo-${DateTime.now().millisecondsSinceEpoch}', name: name, subtitle: subtitle, category: category, description: description);
+
+  @override
+  Future<List<RoomSeat>> getSeats(String roomId) async => _seats[roomId] ?? DemoData.seatsForRoom(roomId);
+
+  @override
+  Future<RoomSeat> joinSeat(String roomId, int position) async {
+    final seats = [...await getSeats(roomId)];
+    final seat = seats[position];
+    final joined = seat.copyWith(active: true, userId: DemoData.currentUser.id);
+    seats[position] = joined;
+    _seats[roomId] = seats;
+    return joined;
+  }
+
+  @override
+  Future<void> leaveRoom(String roomId) async => _seats.remove(roomId);
 }

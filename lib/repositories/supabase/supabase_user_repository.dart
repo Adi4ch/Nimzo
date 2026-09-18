@@ -18,4 +18,12 @@ class SupabaseUserRepository implements UserRepository {
     final row = await _client.from('profiles').select().eq('id', id).maybeSingle();
     return row == null ? null : NimzoUser.fromMap(row);
   }
+
+  @override
+  Future<NimzoUser> updateProfile({required String displayName, String? bio, String? avatarUrl}) async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) throw StateError('An authenticated user is required.');
+    final row = await _client.from('profiles').update({'display_name': displayName, 'bio': bio, 'avatar_url': avatarUrl}).eq('id', userId).select().single();
+    return NimzoUser.fromMap(row);
+  }
 }
