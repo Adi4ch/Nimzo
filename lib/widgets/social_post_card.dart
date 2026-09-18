@@ -22,5 +22,5 @@ class SocialPostCard extends StatelessWidget {
         Container(height: 170, decoration: BoxDecoration(color: lightMint, borderRadius: BorderRadius.circular(16)), child: const Center(child: Icon(Icons.image_outlined, size: 48, color: mint))),
         const SizedBox(height: 10),
         Row(children: [IconButton(onPressed: onLike, icon: Icon(isLiked ? Icons.favorite : Icons.favorite_border, color: isLiked ? Colors.red : ink)), const Text('342'), IconButton(onPressed: onComment, icon: const Icon(Icons.chat_bubble_outline)), const Text('56'), const Spacer(), IconButton(onPressed: onShare, icon: const Icon(Icons.share_outlined))]),
-      ]));
+      ])));
 }

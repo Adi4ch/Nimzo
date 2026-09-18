@@ -9,11 +9,41 @@ class MockUserRepository implements UserRepository {
   Future<NimzoUser?> getCurrentUser() async => user;
 
   @override
+  Future<NimzoUser?> ensureCurrentUser() async => user;
+
+  @override
   Future<NimzoUser?> getById(String id) async => id == user.id ? user : null;
 
   @override
-  Future<NimzoUser> updateProfile({required String displayName, String? bio, String? avatarUrl}) async {
-    user = user.copyWith(displayName: displayName, avatarUrl: avatarUrl);
+  Future<List<NimzoUser>> search(String query) async => query.trim().isEmpty ||
+          user.displayName.toLowerCase().contains(query.trim().toLowerCase())
+      ? [user]
+      : const [];
+
+  @override
+  Future<bool> isFollowing(String userId) async => false;
+
+  @override
+  Future<void> follow(String userId) async {}
+
+  @override
+  Future<void> unfollow(String userId) async {}
+
+  @override
+  Future<NimzoUser> updateProfile(
+      {required String displayName,
+      String? username,
+      String? bio,
+      String? avatarUrl,
+      String? country,
+      String? gender}) async {
+    user = user.copyWith(
+        displayName: displayName,
+        username: username,
+        bio: bio,
+        avatarUrl: avatarUrl,
+        country: country,
+        gender: gender);
     return user;
   }
 }

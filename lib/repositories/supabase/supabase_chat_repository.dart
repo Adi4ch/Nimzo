@@ -13,9 +13,9 @@ class SupabaseChatRepository implements ChatRepository {
 
   @override
   Future<List<ChatMessage>> getMessages(String roomId, {int limit = 30, DateTime? before}) async {
-    var query = _client.from('room_messages').select().eq('room_id', roomId).order('created_at', ascending: false).limit(limit);
+    var query = _client.from('room_messages').select().eq('room_id', roomId);
     if (before != null) query = query.lt('created_at', before.toIso8601String());
-    final rows = await query;
+    final rows = await query.order('created_at', ascending: false).limit(limit);
     return rows.map((row) => ChatMessage.fromMap(Map<String, dynamic>.from(row))).toList();
   }
 

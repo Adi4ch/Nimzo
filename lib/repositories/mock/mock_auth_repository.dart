@@ -15,13 +15,23 @@ class MockAuthRepository implements AuthRepository {
   Stream<AuthState> get authStateChanges => _controller.stream;
 
   @override
-  Future<AuthResponse> signUp({required String email, required String password, String? displayName}) => throw UnsupportedError('Mock auth does not create accounts.');
+  Future<AuthResponse> signUp(
+          {required String email,
+          required String password,
+          String? displayName}) =>
+      throw UnsupportedError('Mock auth does not create accounts.');
 
   @override
-  Future<AuthResponse> signIn({required String email, required String password}) => throw UnsupportedError('Mock auth is not connected.');
+  Future<AuthResponse> signIn(
+          {required String email, required String password}) =>
+      throw UnsupportedError('Mock auth is not connected.');
 
   @override
-  Future<void> resetPassword(String email) => throw UnsupportedError('Mock auth is not connected.');
+  Future<void> resetPassword(String email) =>
+      throw UnsupportedError('Mock auth is not connected.');
+
+  @override
+  Future<void> deleteAccount() => signOut();
 
   @override
   Future<void> signOut() async {

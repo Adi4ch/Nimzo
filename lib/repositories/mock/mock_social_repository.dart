@@ -6,7 +6,7 @@ import '../social_repository.dart';
 import 'demo_data.dart';
 
 class MockSocialRepository implements SocialRepository {
-    final _postEvents = StreamController<SocialPost>.broadcast();
+  final _postEvents = StreamController<SocialPost>.broadcast();
   final List<SocialPost> posts = [...DemoData.posts];
   final Set<String> likedPosts = {};
   final Set<String> followedUsers = {};
@@ -14,18 +14,27 @@ class MockSocialRepository implements SocialRepository {
   final Set<String> blockedUsers = {};
 
   @override
-  Future<List<SocialPost>> getFeed() async => posts;
+  Future<List<SocialPost>> getFeed({bool followingOnly = false}) async =>
+      followingOnly
+          ? posts.where((post) => followedUsers.contains(post.userId)).toList()
+          : posts.where((post) => !blockedUsers.contains(post.userId)).toList();
 
   @override
-  Future<SocialPost> createPost({required String text, String? imageUrl}) async {
-    final post = SocialPost(id: 'post-${posts.length + 1}', userId: DemoData.currentUser.id, text: text, imageUrl: imageUrl);
+  Future<SocialPost> createPost(
+      {required String text, String? imageUrl}) async {
+    final post = SocialPost(
+        id: 'post-${posts.length + 1}',
+        userId: DemoData.currentUser.id,
+        text: text,
+        imageUrl: imageUrl);
     posts.insert(0, post);
     _postEvents.add(post);
     return post;
   }
 
   @override
-  Future<List<NimzoComment>> getComments(String postId) async => comments.where((comment) => comment.postId == postId).toList();
+  Future<List<NimzoComment>> getComments(String postId) async =>
+      comments.where((comment) => comment.postId == postId).toList();
 
   @override
   Future<void> likePost(String postId) async => likedPosts.add(postId);
@@ -37,12 +46,14 @@ class MockSocialRepository implements SocialRepository {
   Future<void> followUser(String userId) async => followedUsers.add(userId);
 
   @override
-  Future<void> unfollowUser(String userId) async => followedUsers.remove(userId);
+  Future<void> unfollowUser(String userId) async =>
+      followedUsers.remove(userId);
 
   @override
   Future<void> sharePost(String postId) async {
     final index = posts.indexWhere((post) => post.id == postId);
-    if (index >= 0) posts[index] = posts[index].copyWith(shares: posts[index].shares + 1);
+    if (index >= 0)
+      posts[index] = posts[index].copyWith(shares: posts[index].shares + 1);
   }
 
   @override
@@ -55,13 +66,18 @@ class MockSocialRepository implements SocialRepository {
   Future<List<String>> getBlockedUsers() async => blockedUsers.toList();
 
   @override
-  Future<void> report({required String targetType, required String targetId, required String reason, String details = ''}) async {}
+  Future<void> report(
+      {required String targetType,
+      required String targetId,
+      required String reason,
+      String details = ''}) async {}
 
   @override
   Future<void> addComment(NimzoComment comment) async => comments.add(comment);
 
   @override
-  Future<void> deletePost(String postId) async => posts.removeWhere((post) => post.id == postId && post.userId == DemoData.currentUser.id);
+  Future<void> deletePost(String postId) async => posts.removeWhere(
+      (post) => post.id == postId && post.userId == DemoData.currentUser.id);
 
   @override
   Stream<SocialPost> watchPosts() => _postEvents.stream;
@@ -70,5 +86,7 @@ class MockSocialRepository implements SocialRepository {
   Future<void> dispose() async => _postEvents.close();
 
   @override
-  Future<void> deleteComment(String commentId) async => comments.removeWhere((comment) => comment.id == commentId && comment.userId == DemoData.currentUser.id);
+  Future<void> deleteComment(String commentId) async =>
+      comments.removeWhere((comment) =>
+          comment.id == commentId && comment.userId == DemoData.currentUser.id);
 }

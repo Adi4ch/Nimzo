@@ -56,9 +56,11 @@ class _WalletScreenState extends State<WalletScreen> {
               final userId = RepositoryFactory.auth().currentUser?.id;
               if (userId == null || !RepositoryFactory.usesSupabase) { setState(() => balance += amount); Navigator.pop(context); return; }
               final wallet = await RepositoryFactory.wallet().getWallet(userId);
-              await RepositoryFactory.wallet().recharge(wallet.id, amount);
+              final updated = await RepositoryFactory.wallet().recharge(wallet.id, amount);
+              if (context.mounted) setState(() { balance = updated.balance; transactions = updated.transactions; });
             } catch (exception) { if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Demo recharge server-side only: $exception'))); }
             if (context.mounted) Navigator.pop(context);
+            if (mounted) await _loadWallet();
           }, child: Text('+$amount'))]),
           const SizedBox(height: 8),
           const Text('Payments are not connected. These are virtual coins.', style: TextStyle(color: muted)),

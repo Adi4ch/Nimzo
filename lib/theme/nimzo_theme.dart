@@ -11,7 +11,7 @@ ThemeData buildNimzoTheme() => ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(seedColor: mint),
       scaffoldBackgroundColor: Colors.white,
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(nimzoCardRadius)),
       ),

@@ -263,7 +263,7 @@ class _HeroPanel extends StatelessWidget {
   const _HeroPanel({required this.icon, required this.title, required this.subtitle, required this.child});
 
   @override
-  Widget build(BuildContext context) => Container(padding: const EdgeInsets.all(20), decoration: BoxDecoration(color: lightMint, borderRadius: BorderRadius.circular(nimzoCardRadius)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Icon(icon, color: mint, size: 34), const SizedBox(height: 10), Text(title, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: ink)), Text(subtitle, style: const TextStyle(color: muted)), const SizedBox(height: 18), child]);
+  Widget build(BuildContext context) => Container(padding: const EdgeInsets.all(20), decoration: BoxDecoration(color: lightMint, borderRadius: BorderRadius.circular(nimzoCardRadius)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Icon(icon, color: mint, size: 34), const SizedBox(height: 10), Text(title, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: ink)), Text(subtitle, style: const TextStyle(color: muted)), const SizedBox(height: 18), child]));
 }
 
 class _SectionIntro extends StatelessWidget {
@@ -273,7 +273,7 @@ class _SectionIntro extends StatelessWidget {
   const _SectionIntro({required this.title, required this.subtitle});
 
   @override
-  Widget build(BuildContext context) => Padding(padding: const EdgeInsets.only(bottom: 16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: ink)), const SizedBox(height: 4), Text(subtitle, style: const TextStyle(color: muted))]);
+  Widget build(BuildContext context) => Padding(padding: const EdgeInsets.only(bottom: 16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: ink)), const SizedBox(height: 4), Text(subtitle, style: const TextStyle(color: muted))]));
 }
 
 class _EmptyState extends StatelessWidget {
@@ -282,7 +282,7 @@ class _EmptyState extends StatelessWidget {
   const _EmptyState(this.message);
 
   @override
-  Widget build(BuildContext context) => Padding(padding: const EdgeInsets.all(28), child: Center(child: Text(message, textAlign: TextAlign.center, style: const TextStyle(color: muted)));
+  Widget build(BuildContext context) => Padding(padding: const EdgeInsets.all(28), child: Center(child: Text(message, textAlign: TextAlign.center, style: const TextStyle(color: muted))));
 }
 
 IconData _icon(String? name) => {'crop_square': Icons.crop_square, 'park': Icons.park, 'auto_awesome': Icons.auto_awesome, 'chat_bubble': Icons.chat_bubble, 'cloud': Icons.cloud}[name] ?? Icons.auto_awesome;

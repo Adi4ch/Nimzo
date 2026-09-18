@@ -18,12 +18,30 @@ class MicSeatRow extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           for (var offset = 0; offset < 5; offset++)
-            GestureDetector(onTap: onTap == null ? null : () => onTap!(start + offset), child: Column(children: [
-              CircleAvatar(radius: 23, backgroundColor: occupied(start + offset) ? lightMint : const Color(0xFFF0F2F2), child: Icon(Icons.mic, color: occupied(start + offset) ? mint : Colors.grey)),
-              const SizedBox(height: 5),
-              Text(occupied(start + offset) ? 'Live' : '${start + offset + 1}', style: const TextStyle(fontSize: 11)),
-            ])),
-            ]),
+            GestureDetector(
+              onTap: onTap == null ? null : () => onTap!(start + offset),
+              child: Column(
+                children: [
+                  CircleAvatar(
+                    radius: 23,
+                    backgroundColor: occupied(start + offset)
+                        ? lightMint
+                        : const Color(0xFFF0F2F2),
+                    child: Icon(
+                      Icons.mic,
+                      color: occupied(start + offset) ? mint : Colors.grey,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    occupied(start + offset)
+                        ? 'Live'
+                        : '${start + offset + 1}',
+                    style: const TextStyle(fontSize: 11),
+                  ),
+                ],
+              ),
+            ),
         ],
       );
 }

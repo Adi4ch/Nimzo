@@ -22,6 +22,10 @@ class SupabaseWalletRepository implements WalletRepository {
 
   @override
   Future<NimzoWallet> recharge(String walletId, int amount) async {
-    throw UnsupportedError('Wallet changes require a reviewed server-side function or Edge Function.');
+    if (amount <= 0) throw ArgumentError.value(amount, 'amount', 'must be positive');
+    await _client.rpc('recharge_virtual_coins', params: {'p_wallet_id': walletId, 'p_amount': amount});
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) throw StateError('An authenticated user is required.');
+    return getWallet(userId);
   }
 }

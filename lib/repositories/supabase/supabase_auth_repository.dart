@@ -4,7 +4,9 @@ import '../../config/supabase_bootstrap.dart';
 import '../auth_repository.dart';
 
 class SupabaseAuthRepository implements AuthRepository {
-  SupabaseClient get _client => SupabaseBootstrap.client ?? (throw StateError('Supabase is not configured.'));
+  SupabaseClient get _client =>
+      SupabaseBootstrap.client ??
+      (throw StateError('Supabase is not configured.'));
 
   @override
   User? get currentUser => _client.auth.currentUser;
@@ -13,13 +15,29 @@ class SupabaseAuthRepository implements AuthRepository {
   Stream<AuthState> get authStateChanges => _client.auth.onAuthStateChange;
 
   @override
-  Future<AuthResponse> signUp({required String email, required String password, String? displayName}) => _client.auth.signUp(email: email, password: password, data: {'display_name': displayName});
+  Future<AuthResponse> signUp(
+          {required String email,
+          required String password,
+          String? displayName}) =>
+      _client.auth.signUp(
+          email: email,
+          password: password,
+          data: {'display_name': displayName});
 
   @override
-  Future<AuthResponse> signIn({required String email, required String password}) => _client.auth.signInWithPassword(email: email, password: password);
+  Future<AuthResponse> signIn(
+          {required String email, required String password}) =>
+      _client.auth.signInWithPassword(email: email, password: password);
 
   @override
-  Future<void> resetPassword(String email) => _client.auth.resetPasswordForEmail(email);
+  Future<void> resetPassword(String email) =>
+      _client.auth.resetPasswordForEmail(email);
+
+  @override
+  Future<void> deleteAccount() async {
+    await _client.rpc('delete_my_account');
+    await _client.auth.signOut();
+  }
 
   @override
   Future<void> signOut() => _client.auth.signOut();
