@@ -27,6 +27,6 @@ flutter run \
 	--dart-define=SUPABASE_ANON_KEY=your-anon-key
 ```
 
-Run `supabase/migrations/001_nimzo_schema.sql` in a Supabase project (or through the Supabase CLI) before enabling the configured client. The migration creates the core tables, relationships, indexes, and RLS policies. Auth uses Supabase email signup, password login, logout, `currentUser`, and `onAuthStateChange` through `AuthRepository`.
+Run `supabase/migrations/001_nimzo_schema.sql` followed by `supabase/migrations/002_demo_catalog_seed.sql` in a Supabase project (or through the Supabase CLI) before enabling the configured client. The first migration creates the core tables, relationships, indexes, RLS policies, and the auth profile/wallet trigger. The second seeds the six demo games and Rose gift, and provides a trusted-session-only function for owner-bound demo rooms. Auth uses Supabase email signup, password login, logout, `currentUser`, and `onAuthStateChange` through `AuthRepository`.
 
 Wallet balances and wallet transactions have no client write policies. A future reviewed server-side function or Edge Function must perform coin operations; the Flutter repository deliberately refuses direct balance changes. Without the two defines, `RepositoryFactory` keeps the mock repositories and the existing demo UI remains usable.
