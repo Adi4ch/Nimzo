@@ -14,8 +14,10 @@ class SupabaseSocialRepository implements SocialRepository {
 
   @override
   Future<List<SocialPost>> getFeed() async {
+    final userId = _client.auth.currentUser?.id;
+    final blocked = userId == null ? const <String>[] : await getBlockedUsers();
     final rows = await _client.from('social_posts').select().order('created_at', ascending: false);
-    return rows.map(SocialPost.fromMap).toList();
+    return rows.where((row) => !blocked.contains(row['user_id'])).map((row) => SocialPost.fromMap(row)).toList();
   }
 
   @override
@@ -81,7 +83,28 @@ class SupabaseSocialRepository implements SocialRepository {
   }
 
   @override
-  Future<void> sharePost(String postId) async {}
+  Future<void> sharePost(String postId) async { await _client.rpc('share_social_post', params: {'target_post': postId}); }
+
+  @override
+  Future<void> blockUser(String userId) async { await _client.rpc('block_user', params: {'target_user': userId}); }
+
+  @override
+  Future<void> unblockUser(String userId) async { await _client.rpc('unblock_user', params: {'target_user': userId}); }
+
+  @override
+  Future<List<String>> getBlockedUsers() async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) return const [];
+    final rows = await _client.from('blocks').select('blocked_id').eq('blocker_id', userId);
+    return rows.map((row) => row['blocked_id'].toString()).toList();
+  }
+
+  @override
+  Future<void> report({required String targetType, required String targetId, required String reason, String details = ''}) async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) throw StateError('An authenticated user is required.');
+    await _client.from('reports').insert({'reporter_id': userId, 'target_type': targetType, 'target_id': targetId, 'reason': reason, 'details': details});
+  }
 
   @override
   Future<void> addComment(NimzoComment comment) async {

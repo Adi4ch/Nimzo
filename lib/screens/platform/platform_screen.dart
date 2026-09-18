@@ -19,12 +19,38 @@ class PlatformScreen extends StatelessWidget {
       );
 }
 
-class VipTab extends StatelessWidget {
+class VipTab extends StatefulWidget {
   const VipTab({super.key});
 
   @override
+  State<VipTab> createState() => _VipTabState();
+}
+
+class _VipTabState extends State<VipTab> {
+  late Future<List<dynamic>> data;
+
+  @override
+  void initState() {
+    super.initState();
+    _refresh();
+  }
+
+  void _refresh() => data = Future.wait([RepositoryFactory.platform().getCurrentVip(), RepositoryFactory.platform().getVipLevels()]);
+
+  Future<void> _purchase(Map<String, dynamic> level) async {
+    try {
+      await RepositoryFactory.platform().purchaseVip(level['id'].toString());
+      if (!mounted) return;
+      setState(_refresh);
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('VIP upgraded successfully')));
+    } catch (exception) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(exception.toString())));
+    }
+  }
+
+  @override
   Widget build(BuildContext context) => FutureBuilder<List<dynamic>>(
-        future: Future.wait([RepositoryFactory.platform().getCurrentVip(), RepositoryFactory.platform().getVipLevels()]),
+        future: data,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator(color: mint));
           if (snapshot.hasError) return const _EmptyState('VIP is temporarily unavailable.');
@@ -40,7 +66,7 @@ class VipTab extends StatelessWidget {
             const SizedBox(height: 20),
             const Text('VIP levels', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: ink)),
             const SizedBox(height: 10),
-            ...levels.map((level) => Card(child: ListTile(leading: CircleAvatar(backgroundColor: lightMint, child: const Icon(Icons.verified, color: mint)), title: Text('${level['name']}  ·  Level ${level['level']}', style: const TextStyle(fontWeight: FontWeight.w800)), subtitle: Text((level['benefits'] as List? ?? const []).join('  ·  ')), trailing: Text('${level['cost'] ?? '—'} coins', style: const TextStyle(fontWeight: FontWeight.w800, color: mint))))),
+            ...levels.map((level) => Card(child: ListTile(leading: CircleAvatar(backgroundColor: lightMint, child: const Icon(Icons.verified, color: mint)), title: Text('${level['name']}  ·  Level ${level['level']}', style: const TextStyle(fontWeight: FontWeight.w800)), subtitle: Text(level['benefits'] is List ? (level['benefits'] as List).join('  ·  ') : level['benefits']?.toString() ?? 'VIP benefits'), trailing: FilledButton(onPressed: () => _purchase(level), child: Text('${level['cost_coins'] ?? level['cost'] ?? 0}'))))),
           ]);
         },
       );
@@ -66,6 +92,7 @@ class _MallTabState extends State<MallTab> {
   Future<void> purchase(Map<String, dynamic> item) async {
     try {
       await RepositoryFactory.platform().purchaseMallItem(item['id'] as String);
+      if (mounted) setState(() => items = RepositoryFactory.platform().getMallItems());
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${item['name']} added to your inventory')));
     } catch (exception) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(exception.toString())));
@@ -93,18 +120,79 @@ class _MallTabState extends State<MallTab> {
       );
 
   Future<void> _showInventory(BuildContext context) async {
-    final inventory = await RepositoryFactory.platform().getInventory();
+    var inventory = await RepositoryFactory.platform().getInventory();
     if (!context.mounted) return;
-    showModalBottomSheet<void>(context: context, builder: (_) => SafeArea(child: ListView(padding: nimzoPagePadding, children: [const Text('My inventory', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)), const SizedBox(height: 12), if (inventory.isEmpty) const _EmptyState('Your inventory is empty.') else ...inventory.map((item) => ListTile(leading: const Icon(Icons.check_circle, color: mint), title: Text(item['name']?.toString() ?? 'Item'), subtitle: Text(item['category']?.toString() ?? ''), trailing: item['equipped'] == true ? const Text('Equipped', style: TextStyle(color: mint)) : TextButton(onPressed: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Equip will be available when inventory actions are enabled.'))), child: const Text('Equip'))))])));
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (context, setSheetState) => SafeArea(
+          child: ListView(
+            padding: nimzoPagePadding,
+            children: [
+              const Text('My inventory', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+              const SizedBox(height: 12),
+              if (inventory.isEmpty)
+                const _EmptyState('Your inventory is empty.')
+              else
+                ...inventory.map((item) {
+                  final catalog = item['mall_items'] as Map<String, dynamic>?;
+                  final itemId = item['id'].toString();
+                  final name = item['name']?.toString() ?? catalog?['name']?.toString() ?? 'Item';
+                  final category = item['category']?.toString() ?? catalog?['category']?.toString() ?? '';
+                  final equipped = item['equipped'] == true;
+                  return ListTile(
+                    leading: const Icon(Icons.check_circle, color: mint),
+                    title: Text(name),
+                    subtitle: Text(category),
+                    trailing: TextButton(
+                      onPressed: () async {
+                        if (equipped) {
+                          await RepositoryFactory.platform().unequipMallItem(itemId);
+                        } else {
+                          await RepositoryFactory.platform().equipMallItem(itemId);
+                        }
+                        inventory = await RepositoryFactory.platform().getInventory();
+                        setSheetState(() {});
+                      },
+                      child: Text(equipped ? 'Unequip' : 'Equip'),
+                    ),
+                  );
+                }),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
-class TasksTab extends StatelessWidget {
+class TasksTab extends StatefulWidget {
   const TasksTab({super.key});
 
   @override
+  State<TasksTab> createState() => _TasksTabState();
+}
+
+class _TasksTabState extends State<TasksTab> {
+  late Future<List<dynamic>> data;
+
+  @override
+  void initState() { super.initState(); _refresh(); }
+
+  void _refresh() => data = Future.wait([RepositoryFactory.platform().getDailyTasks(), RepositoryFactory.platform().getAchievements()]);
+
+  Future<void> _claim(String id, bool achievement) async {
+    try {
+      if (achievement) { await RepositoryFactory.platform().claimAchievement(id); } else { await RepositoryFactory.platform().claimDailyTask(id); }
+      if (mounted) { setState(_refresh); ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Reward claimed'))); }
+    } catch (exception) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(exception.toString())));
+    }
+  }
+
+  @override
   Widget build(BuildContext context) => FutureBuilder<List<dynamic>>(
-        future: Future.wait([RepositoryFactory.platform().getDailyTasks(), RepositoryFactory.platform().getAchievements()]),
+        future: data,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator(color: mint));
           if (snapshot.hasError) return const _EmptyState('Tasks are temporarily unavailable.');
@@ -112,11 +200,11 @@ class TasksTab extends StatelessWidget {
           final achievements = snapshot.data![1] as List<Map<String, dynamic>>;
           return ListView(padding: nimzoPagePadding, children: [
             const _SectionIntro(title: 'Today in Nimzo', subtitle: 'Small actions, steady progress. Tasks reset every day.'),
-            ...tasks.map((task) => _ProgressTile(title: task['title'] as String, subtitle: task['description'] as String, progress: task['progress'] as int, target: task['target'] as int, reward: task['reward_coins'] as int, complete: task['claimed'] == true)),
+            ...tasks.map((task) => _ProgressTile(title: task['title'] as String, subtitle: task['description'] as String, progress: task['progress'] as int? ?? 0, target: task['target'] as int? ?? 1, reward: task['reward_coins'] as int? ?? 0, complete: task['claimed'] == true, claimable: task['progress'] >= (task['target'] ?? 1) && task['claimed'] != true, onClaim: () => _claim(task['id'].toString(), false))),
             const SizedBox(height: 20),
             const Text('Achievements', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: ink)),
             const SizedBox(height: 8),
-            ...achievements.map((achievement) => _ProgressTile(title: achievement['title'] as String, subtitle: achievement['description'] as String, progress: achievement['progress'] as int, target: achievement['target'] as int, reward: achievement['reward_coins'] as int, complete: achievement['complete'] == true)),
+            ...achievements.map((achievement) => _ProgressTile(title: achievement['title'] as String, subtitle: achievement['description'] as String, progress: achievement['progress'] as int? ?? 0, target: achievement['target'] as int? ?? 1, reward: achievement['reward_coins'] as int? ?? 0, complete: achievement['claimed'] == true, claimable: achievement['complete'] == true && achievement['claimed'] != true, onClaim: () => _claim(achievement['id'].toString(), true))),
           ]);
         },
       );
@@ -157,11 +245,13 @@ class _ProgressTile extends StatelessWidget {
   final int target;
   final int reward;
   final bool complete;
+  final bool claimable;
+  final VoidCallback onClaim;
 
-  const _ProgressTile({required this.title, required this.subtitle, required this.progress, required this.target, required this.reward, required this.complete});
+  const _ProgressTile({required this.title, required this.subtitle, required this.progress, required this.target, required this.reward, required this.complete, required this.claimable, required this.onClaim});
 
   @override
-  Widget build(BuildContext context) => Card(margin: const EdgeInsets.only(top: 10), child: Padding(padding: const EdgeInsets.all(14), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Row(children: [Expanded(child: Text(title, style: const TextStyle(fontWeight: FontWeight.w800))), Text('+$reward', style: const TextStyle(color: mint, fontWeight: FontWeight.w800)), const SizedBox(width: 8), Icon(complete ? Icons.check_circle : Icons.radio_button_unchecked, color: complete ? mint : muted)]), const SizedBox(height: 4), Text(subtitle, style: const TextStyle(color: muted)), const SizedBox(height: 10), LinearProgressIndicator(value: target == 0 ? 0 : (progress / target).clamp(0, 1), color: mint, backgroundColor: lightMint), const SizedBox(height: 6), Text('$progress / $target', style: const TextStyle(color: muted, fontSize: 12))])));
+  Widget build(BuildContext context) => Card(margin: const EdgeInsets.only(top: 10), child: Padding(padding: const EdgeInsets.all(14), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Row(children: [Expanded(child: Text(title, style: const TextStyle(fontWeight: FontWeight.w800))), Text('+$reward', style: const TextStyle(color: mint, fontWeight: FontWeight.w800)), const SizedBox(width: 8), if (claimable) TextButton(onPressed: onClaim, child: const Text('Claim')) else Icon(complete ? Icons.check_circle : Icons.radio_button_unchecked, color: complete ? mint : muted)]), const SizedBox(height: 4), Text(subtitle, style: const TextStyle(color: muted)), const SizedBox(height: 10), LinearProgressIndicator(value: target == 0 ? 0 : (progress / target).clamp(0, 1), color: mint, backgroundColor: lightMint), const SizedBox(height: 6), Text('$progress / $target', style: const TextStyle(color: muted, fontSize: 12))])));
 }
 
 class _HeroPanel extends StatelessWidget {

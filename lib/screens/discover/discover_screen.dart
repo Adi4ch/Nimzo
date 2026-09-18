@@ -71,6 +71,8 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         onLike: () async { final isLiked = liked.contains(post.id); setState(() => isLiked ? liked.remove(post.id) : liked.add(post.id)); try { await (isLiked ? social.unlikePost(post.id) : social.likePost(post.id)); } catch (_) {} },
         onFollow: () async { final isFollowed = followed.contains(post.userId); setState(() => isFollowed ? followed.remove(post.userId) : followed.add(post.userId)); try { await (isFollowed ? social.unfollowUser(post.userId) : social.followUser(post.userId)); } catch (_) {} },
         onComment: () => addComment(post),
-        onShare: () => showNimzoNotice(context, 'Post link copied.'),
+        onShare: () async { try { await social.sharePost(post.id); if (mounted) showNimzoNotice(context, 'Post shared.'); } catch (exception) { if (mounted) showNimzoNotice(context, exception.toString()); } },
+        onReport: () async { try { await social.report(targetType: 'post', targetId: post.id, reason: 'other'); if (mounted) showNimzoNotice(context, 'Report submitted.'); } catch (exception) { if (mounted) showNimzoNotice(context, exception.toString()); } },
+        onBlock: () async { try { await social.blockUser(post.userId); if (mounted) setState(() => feed = loadFeed()); } catch (exception) { if (mounted) showNimzoNotice(context, exception.toString()); } },
       );
 }

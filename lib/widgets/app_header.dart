@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/nimzo_theme.dart';
 import '../screens/notifications/notifications_screen.dart';
+import '../repositories/repository_factory.dart';
 
 class AppHeader extends StatelessWidget {
   final String title;
@@ -17,7 +18,17 @@ class AppHeader extends StatelessWidget {
           Expanded(child: Text(title, style: const TextStyle(fontSize: 23, fontWeight: FontWeight.w800, color: ink))),
           const Icon(Icons.search, color: ink),
           const SizedBox(width: 16),
-          IconButton(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen())), icon: const Icon(Icons.notifications_none, color: ink)),
+          FutureBuilder(
+            future: RepositoryFactory.notifications().getNotifications(),
+            builder: (context, snapshot) {
+              final unread = snapshot.data?.where((item) => !item.read).length ?? 0;
+              return Badge(
+                isLabelVisible: unread > 0,
+                label: Text(unread > 9 ? '9+' : '$unread'),
+                child: IconButton(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen())), icon: const Icon(Icons.notifications_none, color: ink)),
+              );
+            },
+          ),
         ]),
       );
 }

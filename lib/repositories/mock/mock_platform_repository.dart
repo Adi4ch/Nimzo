@@ -53,5 +53,20 @@ class MockPlatformRepository implements PlatformRepository {
   Future<Map<String, dynamic>> purchaseMallItem(String itemId) async => {'item_id': itemId};
 
   @override
+  Future<Map<String, dynamic>> purchaseVip(String levelId) async => {'vip_level_id': levelId};
+
+  @override
+  Future<Map<String, dynamic>> equipMallItem(String inventoryId) async => {'id': inventoryId, 'equipped': true};
+
+  @override
+  Future<Map<String, dynamic>> unequipMallItem(String inventoryId) async => {'id': inventoryId, 'equipped': false};
+
+  @override
+  Future<void> claimDailyTask(String taskId) async {}
+
+  @override
+  Future<void> claimAchievement(String achievementId) async {}
+
+  @override
   Future<void> updateSettings({required String language, required bool notificationsEnabled}) async {}
 }
