@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'dart:async';
 
 import '../../config/supabase_bootstrap.dart';
 import '../../models/room.dart';
@@ -6,6 +7,9 @@ import '../../models/room_seat.dart';
 import '../room_repository.dart';
 
 class SupabaseRoomRepository implements RoomRepository {
+    final Map<String, RealtimeChannel> _channels = {};
+    final Map<String, StreamController<List<RoomSeat>>> _seatControllers = {};
+    final Map<String, StreamController<NimzoRoom>> _roomControllers = {};
   SupabaseClient get _client => SupabaseBootstrap.client ?? (throw StateError('Supabase is not configured.'));
 
   @override
@@ -51,4 +55,32 @@ class SupabaseRoomRepository implements RoomRepository {
 
   @override
   Future<void> leaveRoom(String roomId) => _client.rpc('leave_room_seat', params: {'target_room': roomId});
+
+  @override
+  Stream<List<RoomSeat>> watchSeats(String roomId) {
+    final controller = _seatControllers.putIfAbsent(roomId, () => StreamController<List<RoomSeat>>.broadcast());
+    if (!_channels.containsKey(roomId)) {
+      _channels[roomId] = _client.channel('room-seats:$roomId').onPostgresChanges(event: PostgresChangeEvent.all, schema: 'public', table: 'room_seats', filter: PostgresChangeFilter(type: PostgresChangeFilterType.eq, column: 'room_id', value: roomId), callback: (_) async { controller.add(await getSeats(roomId)); }).subscribe();
+    }
+    return controller.stream;
+  }
+
+  @override
+  Future<void> disposeRoom(String roomId) async {
+    final seatChannel = _channels.remove(roomId);
+    if (seatChannel != null) await _client.removeChannel(seatChannel);
+    final roomChannel = _channels.remove('room-state:$roomId');
+    if (roomChannel != null) await _client.removeChannel(roomChannel);
+    await _seatControllers.remove(roomId)?.close();
+    await _roomControllers.remove(roomId)?.close();
+  }
+
+  @override
+  Stream<NimzoRoom> watchRoom(String roomId) {
+    final controller = _roomControllers.putIfAbsent(roomId, () => StreamController<NimzoRoom>.broadcast());
+    if (!_channels.containsKey('room-state:$roomId')) {
+      _channels['room-state:$roomId'] = _client.channel('room-state:$roomId').onPostgresChanges(event: PostgresChangeEvent.all, schema: 'public', table: 'rooms', filter: PostgresChangeFilter(type: PostgresChangeFilterType.eq, column: 'id', value: roomId), callback: (payload) => controller.add(NimzoRoom.fromMap(payload.newRecord))).subscribe();
+    }
+    return controller.stream;
+  }
 }

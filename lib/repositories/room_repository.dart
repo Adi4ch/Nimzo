@@ -1,4 +1,5 @@
 import '../models/room.dart';
+import '../models/room_seat.dart';
 
 abstract class RoomRepository {
   Future<List<NimzoRoom>> getFeaturedRooms();
@@ -8,4 +9,7 @@ abstract class RoomRepository {
   Future<List<RoomSeat>> getSeats(String roomId);
   Future<RoomSeat> joinSeat(String roomId, int position);
   Future<void> leaveRoom(String roomId);
+  Stream<List<RoomSeat>> watchSeats(String roomId);
+  Future<void> disposeRoom(String roomId);
+  Stream<NimzoRoom> watchRoom(String roomId);
 }

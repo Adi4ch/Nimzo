@@ -1,10 +1,12 @@
 import '../../models/room.dart';
 import '../../models/room_seat.dart';
+import 'dart:async';
 import '../room_repository.dart';
 import 'demo_data.dart';
 
 class MockRoomRepository implements RoomRepository {
   final Map<String, List<RoomSeat>> _seats = {};
+  final Map<String, StreamController<List<RoomSeat>>> _seatControllers = {};
   @override
   Future<List<NimzoRoom>> getFeaturedRooms() async => DemoData.featuredRooms;
 
@@ -32,9 +34,24 @@ class MockRoomRepository implements RoomRepository {
     final joined = seat.copyWith(active: true, userId: DemoData.currentUser.id);
     seats[position] = joined;
     _seats[roomId] = seats;
+    _seatControllers[roomId]?.add(seats);
     return joined;
   }
 
   @override
   Future<void> leaveRoom(String roomId) async => _seats.remove(roomId);
+
+  @override
+  Stream<List<RoomSeat>> watchSeats(String roomId) => (_seatControllers[roomId] ??= StreamController<List<RoomSeat>>.broadcast()).stream;
+
+  @override
+  Future<void> disposeRoom(String roomId) async {
+    await _seatControllers.remove(roomId)?.close();
+  }
+
+  @override
+  Stream<NimzoRoom> watchRoom(String roomId) async* {
+    final room = await getById(roomId);
+    if (room != null) yield room;
+  }
 }

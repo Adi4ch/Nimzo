@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../config/supabase_bootstrap.dart';
@@ -7,6 +9,8 @@ import '../social_repository.dart';
 
 class SupabaseSocialRepository implements SocialRepository {
   SupabaseClient get _client => SupabaseBootstrap.client ?? (throw StateError('Supabase is not configured.'));
+  final _posts = StreamController<SocialPost>.broadcast();
+  RealtimeChannel? _channel;
 
   @override
   Future<List<SocialPost>> getFeed() async {
@@ -20,6 +24,26 @@ class SupabaseSocialRepository implements SocialRepository {
     if (userId == null) throw StateError('An authenticated user is required.');
     final row = await _client.from('social_posts').insert({'user_id': userId, 'text': text, 'image_url': imageUrl}).select().single();
     return SocialPost.fromMap(row);
+  }
+
+  @override
+  Future<void> deletePost(String postId) async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) throw StateError('An authenticated user is required.');
+    await _client.from('social_posts').delete().eq('id', postId).eq('user_id', userId);
+  }
+
+  @override
+  Stream<SocialPost> watchPosts() {
+    _channel ??= _client.channel('social-feed').onPostgresChanges(event: PostgresChangeEvent.insert, schema: 'public', table: 'social_posts', callback: (payload) => _posts.add(SocialPost.fromMap(payload.newRecord))).subscribe();
+    return _posts.stream;
+  }
+
+  @override
+  Future<void> dispose() async {
+    if (_channel != null) await _client.removeChannel(_channel!);
+    _channel = null;
+    await _posts.close();
   }
 
   @override
@@ -61,6 +85,15 @@ class SupabaseSocialRepository implements SocialRepository {
 
   @override
   Future<void> addComment(NimzoComment comment) async {
-    await _client.from('comments').insert(comment.toMap());
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) throw StateError('An authenticated user is required.');
+    await _client.from('comments').insert({'post_id': comment.postId, 'user_id': userId, 'text': comment.text});
+  }
+
+  @override
+  Future<void> deleteComment(String commentId) async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) throw StateError('An authenticated user is required.');
+    await _client.from('comments').delete().eq('id', commentId).eq('user_id', userId);
   }
 }

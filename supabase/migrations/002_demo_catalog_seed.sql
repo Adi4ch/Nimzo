@@ -3,6 +3,7 @@
 
 insert into public.games (name, category)
 values
+  ('Fruit Rush', 'Arcade'),
   ('Ludo', 'Board'),
   ('Carrom', 'Board'),
   ('8 Ball Pool', 'Classic'),

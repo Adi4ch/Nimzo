@@ -4,6 +4,9 @@ import '../models/social_post.dart';
 abstract class SocialRepository {
   Future<List<SocialPost>> getFeed();
   Future<SocialPost> createPost({required String text, String? imageUrl});
+  Future<void> deletePost(String postId);
+  Stream<SocialPost> watchPosts();
+  Future<void> dispose();
   Future<List<NimzoComment>> getComments(String postId);
   Future<void> likePost(String postId);
   Future<void> unlikePost(String postId);
@@ -11,4 +14,5 @@ abstract class SocialRepository {
   Future<void> unfollowUser(String userId);
   Future<void> sharePost(String postId);
   Future<void> addComment(NimzoComment comment);
+  Future<void> deleteComment(String commentId);
 }

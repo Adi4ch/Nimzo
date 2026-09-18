@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 
 import '../../models/social_post.dart';
+import '../../models/comment.dart';
 import '../../repositories/mock/demo_data.dart';
 import '../../repositories/repository_factory.dart';
 import '../../theme/nimzo_theme.dart';
@@ -16,15 +18,20 @@ class DiscoverScreen extends StatefulWidget {
 }
 
 class _DiscoverScreenState extends State<DiscoverScreen> {
+  final social = RepositoryFactory.social();
   final liked = <String>{};
   final followed = <String>{};
   late Future<List<SocialPost>> feed;
+  StreamSubscription<SocialPost>? postSubscription;
 
   @override
-  void initState() { super.initState(); feed = loadFeed(); }
+  void initState() { super.initState(); feed = loadFeed(); postSubscription = social.watchPosts().listen((_) { if (mounted) setState(() => feed = loadFeed()); }); }
+
+  @override
+  void dispose() { postSubscription?.cancel(); social.dispose(); super.dispose(); }
 
   Future<List<SocialPost>> loadFeed() async {
-    try { final loaded = await RepositoryFactory.social().getFeed(); return loaded.isEmpty ? DemoData.posts : loaded; } catch (_) { return DemoData.posts; }
+    try { final loaded = await social.getFeed(); return loaded.isEmpty ? DemoData.posts : loaded; } catch (_) { return DemoData.posts; }
   }
 
   Future<void> createPost() async {
@@ -32,7 +39,15 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     final value = await showDialog<String>(context: context, builder: (context) => AlertDialog(title: const Text('Create post'), content: TextField(controller: text, maxLines: 4, decoration: const InputDecoration(hintText: 'What is on your mind?')), actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')), FilledButton(onPressed: () => Navigator.pop(context, text.text.trim()), child: const Text('Post'))]));
     text.dispose();
     if (value == null || value.isEmpty) return;
-    try { await RepositoryFactory.social().createPost(text: value); if (mounted) setState(() => feed = loadFeed()); } catch (exception) { if (mounted) showNimzoNotice(context, exception.toString()); }
+    try { await social.createPost(text: value); if (mounted) setState(() => feed = loadFeed()); } catch (exception) { if (mounted) showNimzoNotice(context, exception.toString()); }
+  }
+
+  Future<void> addComment(SocialPost post) async {
+    final text = TextEditingController();
+    final value = await showDialog<String>(context: context, builder: (context) => AlertDialog(title: const Text('Comment'), content: TextField(controller: text, decoration: const InputDecoration(hintText: 'Write a comment')), actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')), FilledButton(onPressed: () => Navigator.pop(context, text.text.trim()), child: const Text('Send'))]));
+    text.dispose();
+    if (value == null || value.isEmpty) return;
+    try { await social.addComment(NimzoComment(id: 'comment-${DateTime.now().microsecondsSinceEpoch}', postId: post.id, userId: RepositoryFactory.auth().currentUser?.id ?? 'demo-user', text: value)); if (mounted) showNimzoNotice(context, 'Comment added.'); } catch (exception) { if (mounted) showNimzoNotice(context, exception.toString()); }
   }
 
   @override
@@ -53,9 +68,9 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           text: post.text,
         isLiked: liked.contains(post.id),
         isFollowed: followed.contains(post.userId),
-        onLike: () async { final isLiked = liked.contains(post.id); setState(() => isLiked ? liked.remove(post.id) : liked.add(post.id)); try { await (isLiked ? RepositoryFactory.social().unlikePost(post.id) : RepositoryFactory.social().likePost(post.id)); } catch (_) {} },
-        onFollow: () async { final isFollowed = followed.contains(post.userId); setState(() => isFollowed ? followed.remove(post.userId) : followed.add(post.userId)); try { await (isFollowed ? RepositoryFactory.social().unfollowUser(post.userId) : RepositoryFactory.social().followUser(post.userId)); } catch (_) {} },
-        onComment: () => showNimzoNotice(context, 'Comments are ready for the social feed.'),
+        onLike: () async { final isLiked = liked.contains(post.id); setState(() => isLiked ? liked.remove(post.id) : liked.add(post.id)); try { await (isLiked ? social.unlikePost(post.id) : social.likePost(post.id)); } catch (_) {} },
+        onFollow: () async { final isFollowed = followed.contains(post.userId); setState(() => isFollowed ? followed.remove(post.userId) : followed.add(post.userId)); try { await (isFollowed ? social.unfollowUser(post.userId) : social.followUser(post.userId)); } catch (_) {} },
+        onComment: () => addComment(post),
         onShare: () => showNimzoNotice(context, 'Post link copied.'),
       );
 }

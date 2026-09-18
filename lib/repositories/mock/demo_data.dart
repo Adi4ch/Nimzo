@@ -35,6 +35,7 @@ class DemoData {
   ];
 
   static const games = [
+    NimzoGame(id: 'fruit-rush', name: 'Fruit Rush', category: 'Arcade', playable: true),
     NimzoGame(id: 'ludo', name: 'Ludo', category: 'Board'),
     NimzoGame(id: 'carrom', name: 'Carrom', category: 'Board'),
     NimzoGame(id: '8-ball-pool', name: '8 Ball Pool', category: 'Classic'),
