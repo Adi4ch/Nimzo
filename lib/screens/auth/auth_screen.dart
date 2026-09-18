@@ -31,7 +31,10 @@ class _AuthScreenState extends State<AuthScreen> {
     try {
       final auth = RepositoryFactory.auth();
       if (signup) {
-        await auth.signUp(email: email.text.trim(), password: password.text, displayName: displayName.text.trim());
+        final response = await auth.signUp(email: email.text.trim(), password: password.text, displayName: displayName.text.trim());
+        if (mounted && response.session == null) {
+          setState(() => error = 'Check your email to verify your Nimzo account, then log in.');
+        }
       } else {
         await auth.signIn(email: email.text.trim(), password: password.text);
       }
@@ -52,6 +55,17 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
+  Future<void> signInWithGoogle() async {
+    setState(() { busy = true; error = null; });
+    try {
+      await RepositoryFactory.auth().signInWithGoogle();
+    } catch (exception) {
+      if (mounted) setState(() => error = exception.toString().replaceFirst('AuthException: ', ''));
+    } finally {
+      if (mounted) setState(() => busy = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) => Scaffold(
         body: SafeArea(child: Center(child: SingleChildScrollView(padding: const EdgeInsets.all(28), child: ConstrainedBox(
@@ -69,6 +83,8 @@ class _AuthScreenState extends State<AuthScreen> {
             if (error != null) Padding(padding: const EdgeInsets.only(top: 14), child: Text(error!, style: const TextStyle(color: Colors.red))),
             const SizedBox(height: 20),
             FilledButton(onPressed: busy ? null : submit, style: FilledButton.styleFrom(backgroundColor: mint, padding: const EdgeInsets.symmetric(vertical: 15)), child: busy ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : Text(signup ? 'Create account' : 'Login')),
+            const SizedBox(height: 10),
+            OutlinedButton.icon(onPressed: busy ? null : signInWithGoogle, icon: const Icon(Icons.login), label: const Text('Continue with Google')),
             if (!signup) TextButton(onPressed: busy ? null : resetPassword, child: const Text('Forgot password?')),
             TextButton(onPressed: busy ? null : () => setState(() { signup = !signup; error = null; }), child: Text(signup ? 'Already have an account? Login' : 'Create a new account')),
           ]),

@@ -21,6 +21,9 @@ class MockAuthRepository implements AuthRepository {
   Future<AuthResponse> signIn({required String email, required String password}) => throw UnsupportedError('Mock auth is not connected.');
 
   @override
+  Future<bool> signInWithGoogle() async => false;
+
+  @override
   Future<void> resetPassword(String email) => throw UnsupportedError('Mock auth is not connected.');
 
   @override
@@ -28,4 +31,7 @@ class MockAuthRepository implements AuthRepository {
     _user = null;
     _controller.add(AuthState(AuthChangeEvent.signedOut, null));
   }
+
+  @override
+  Future<void> deleteAccount() async => signOut();
 }

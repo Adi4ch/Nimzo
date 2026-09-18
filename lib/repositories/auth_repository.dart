@@ -5,6 +5,8 @@ abstract class AuthRepository {
   Stream<AuthState> get authStateChanges;
   Future<AuthResponse> signUp({required String email, required String password, String? displayName});
   Future<AuthResponse> signIn({required String email, required String password});
+  Future<bool> signInWithGoogle();
   Future<void> resetPassword(String email);
   Future<void> signOut();
+  Future<void> deleteAccount();
 }

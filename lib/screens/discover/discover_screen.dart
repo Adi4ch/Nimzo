@@ -31,7 +31,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   void dispose() { postSubscription?.cancel(); social.dispose(); super.dispose(); }
 
   Future<List<SocialPost>> loadFeed() async {
-    try { final loaded = await social.getFeed(); return loaded.isEmpty ? DemoData.posts : loaded; } catch (_) { return DemoData.posts; }
+    try { final loaded = await social.getFeed(); return RepositoryFactory.usesSupabase ? loaded : (loaded.isEmpty ? DemoData.posts : loaded); } catch (_) { if (RepositoryFactory.usesSupabase) rethrow; return DemoData.posts; }
   }
 
   Future<void> createPost() async {

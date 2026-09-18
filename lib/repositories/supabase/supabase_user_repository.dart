@@ -24,6 +24,7 @@ class SupabaseUserRepository implements UserRepository {
     final profile = await _client.from('profiles').upsert({
       'id': authUser.id,
       'display_name': authUser.userMetadata?['display_name']?.toString() ?? '',
+      'username': _usernameFor(authUser),
     }).select().single();
     await _client.from('wallets').upsert({'user_id': authUser.id}, onConflict: 'user_id');
     return NimzoUser.fromMap(profile);
@@ -36,10 +37,22 @@ class SupabaseUserRepository implements UserRepository {
   }
 
   @override
-  Future<NimzoUser> updateProfile({required String displayName, String? bio, String? avatarUrl}) async {
+  Future<NimzoUser> updateProfile({required String displayName, required String username, String? bio, String? avatarUrl, String? country, String? gender}) async {
     final userId = _client.auth.currentUser?.id;
     if (userId == null) throw StateError('An authenticated user is required.');
-    final row = await _client.from('profiles').update({'display_name': displayName, 'bio': bio, 'avatar_url': avatarUrl}).eq('id', userId).select().single();
+    final row = await _client.from('profiles').update({'display_name': displayName.trim(), 'username': username.trim().toLowerCase(), 'bio': bio, 'avatar_url': avatarUrl, 'country': country, 'gender': gender}).eq('id', userId).select().single();
     return NimzoUser.fromMap(row);
+  }
+
+  @override
+  Future<List<NimzoUser>> search(String query) async {
+    final value = query.trim();
+    if (value.isEmpty) return const [];
+    final rows = await _client.from('profiles').select().or('username.ilike.%$value%,display_name.ilike.%$value%').limit(30);
+    return rows.map(NimzoUser.fromMap).toList();
+  }
+
+  String _usernameFor(User user) {
+    return 'nimzo_${user.id.replaceAll('-', '').substring(0, 12)}';
   }
 }

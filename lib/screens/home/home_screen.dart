@@ -27,20 +27,21 @@ class HomeScreen extends StatelessWidget {
         const SectionHeader('Featured Rooms'),
         FutureBuilder<List<NimzoRoom>>(
           future: _loadFeaturedRooms(),
-          builder: (_, snapshot) => RoomCardRow(snapshot.data ?? DemoData.featuredRooms),
+          builder: (_, snapshot) => RoomCardRow(snapshot.data ?? const <NimzoRoom>[]),
         ),
         const SectionHeader('More Rooms'),
         FutureBuilder<List<NimzoRoom>>(
           future: _loadMoreRooms(),
-          builder: (_, snapshot) => RoomCardRow(snapshot.data ?? DemoData.moreRooms),
+          builder: (_, snapshot) => RoomCardRow(snapshot.data ?? const <NimzoRoom>[]),
         ),
       ]);
 
   Future<List<NimzoRoom>> _loadFeaturedRooms() async {
     try {
       final rooms = await RepositoryFactory.rooms().getFeaturedRooms();
-      return rooms.isEmpty ? DemoData.featuredRooms : rooms.take(3).toList();
+      return RepositoryFactory.usesSupabase ? rooms.take(3).toList() : (rooms.isEmpty ? DemoData.featuredRooms : rooms.take(3).toList());
     } catch (_) {
+      if (RepositoryFactory.usesSupabase) rethrow;
       return DemoData.featuredRooms;
     }
   }
@@ -49,8 +50,9 @@ class HomeScreen extends StatelessWidget {
     try {
       final rooms = await RepositoryFactory.rooms().getRooms();
       final more = rooms.where((room) => !room.featured).toList();
-      return more.isEmpty ? DemoData.moreRooms : more;
+      return RepositoryFactory.usesSupabase ? more : (more.isEmpty ? DemoData.moreRooms : more);
     } catch (_) {
+      if (RepositoryFactory.usesSupabase) rethrow;
       return DemoData.moreRooms;
     }
   }

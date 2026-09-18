@@ -24,8 +24,8 @@ class _GameListScreenState extends State<GameListScreen> {
   Future<List<NimzoGame>> _loadGames() async {
     try {
       final loaded = await RepositoryFactory.games().getGames(category: categories[category]);
-      return loaded.isEmpty ? _demoGames() : loaded;
-    } catch (_) { return _demoGames(); }
+      return RepositoryFactory.usesSupabase ? loaded : (loaded.isEmpty ? _demoGames() : loaded);
+    } catch (_) { if (RepositoryFactory.usesSupabase) rethrow; return _demoGames(); }
   }
 
   List<NimzoGame> _demoGames() => category == 0 ? DemoData.games : DemoData.games.where((game) => game.category == categories[category]).toList();
@@ -36,7 +36,7 @@ class _GameListScreenState extends State<GameListScreen> {
         body: ListView(padding: const EdgeInsets.all(20), children: [
           const Text('Pick a game', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: ink)),
           const SizedBox(height: 8),
-          const Text('Play with room friends using demo coins.', style: TextStyle(color: muted)),
+          const Text('Play with room friends using virtual coins.', style: TextStyle(color: muted)),
           const SizedBox(height: 20),
           Wrap(spacing: 8, children: [for (var index = 0; index < categories.length; index++) ChoiceChip(label: Text(categories[index]), selected: category == index, selectedColor: mint, labelStyle: TextStyle(color: category == index ? Colors.white : ink, fontWeight: FontWeight.w700), onSelected: (_) => setState(() { category = index; games = _loadGames(); }))]),
           const SizedBox(height: 12),

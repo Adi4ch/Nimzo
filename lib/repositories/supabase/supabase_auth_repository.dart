@@ -33,10 +33,20 @@ class SupabaseAuthRepository implements AuthRepository {
     return response;
   }
 
+    @override
+    Future<bool> signInWithGoogle() => _client.auth.signInWithOAuth(
+                OAuthProvider.google,
+                redirectTo: 'io.supabase.nimzo://login-callback',
+                authScreenLaunchMode: LaunchMode.externalApplication,
+            );
+
   @override
   Future<void> resetPassword(String email) =>
       _client.auth.resetPasswordForEmail(email);
 
   @override
   Future<void> signOut() => _client.auth.signOut();
+
+    @override
+    Future<void> deleteAccount() => _client.rpc('delete_my_account');
 }

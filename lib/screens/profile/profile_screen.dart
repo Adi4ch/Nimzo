@@ -29,16 +29,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> editProfile(NimzoUser user) async {
     final name = TextEditingController(text: user.displayName);
+    final username = TextEditingController(text: user.username);
     final bio = TextEditingController(text: user.bio);
     final result = await showDialog<NimzoUser>(context: context, builder: (context) => AlertDialog(
       title: const Text('Edit profile'),
       content: Column(mainAxisSize: MainAxisSize.min, children: [
         TextField(controller: name, decoration: const InputDecoration(labelText: 'Display name')),
+        TextField(controller: username, decoration: const InputDecoration(labelText: 'Nimzo username')),
         TextField(controller: bio, decoration: const InputDecoration(labelText: 'Bio')),
       ]),
       actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')), FilledButton(onPressed: () async {
         try {
-          final updated = await RepositoryFactory.users().updateProfile(displayName: name.text.trim(), bio: bio.text.trim());
+          final updated = await RepositoryFactory.users().updateProfile(displayName: name.text.trim(), username: username.text.trim(), bio: bio.text.trim());
           if (context.mounted) Navigator.pop(context, updated);
         } catch (exception) {
           if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(exception.toString())));
@@ -46,6 +48,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }, child: const Text('Save'))],
     ));
     name.dispose();
+    username.dispose();
     bio.dispose();
     if (result != null && mounted) setState(() => profile = Future.value(result));
   }
@@ -62,7 +65,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Row(children: [
               CircleAvatar(radius: 42, backgroundColor: lightMint, child: const Icon(Icons.person, size: 45, color: mint)),
               const SizedBox(width: 14),
-              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(user.displayName, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)), Text('ID: ${user.id}', style: const TextStyle(color: muted)), if (user.bio?.isNotEmpty == true) Text(user.bio!, style: const TextStyle(color: muted)), const SizedBox(height: 8), Text('Lv.${user.level}', style: const TextStyle(color: mint, fontWeight: FontWeight.w800))])),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(user.displayName, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)), Text('@${user.username}', style: const TextStyle(color: muted)), Text('ID: ${user.id}', style: const TextStyle(color: muted)), if (user.bio?.isNotEmpty == true) Text(user.bio!, style: const TextStyle(color: muted)), const SizedBox(height: 8), Text('Lv.${user.level}', style: const TextStyle(color: mint, fontWeight: FontWeight.w800))])),
               IconButton(onPressed: () => editProfile(user), icon: const Icon(Icons.edit_outlined)),
             ]),
             const SizedBox(height: 18),
@@ -77,6 +80,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             MenuTile('About Nimzo', Icons.info_outline, onTap: () => showAboutDialog(context: context, applicationName: 'Nimzo', applicationVersion: '1.0.0', applicationLegalese: 'Nimzo uses virtual coins only.', children: const [Text('A social rooms and community app.')])),
             const SizedBox(height: 12),
             OutlinedButton.icon(onPressed: () => RepositoryFactory.auth().signOut(), icon: const Icon(Icons.logout), label: const Text('Logout')),
+            const SizedBox(height: 8),
+            TextButton(onPressed: () => _deleteAccount(context), child: const Text('Delete account', style: TextStyle(color: Colors.red))),
           ]);
         },
       );
@@ -86,6 +91,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
         content: const Text('For account, safety, or room issues, contact support@nimzo.app.'),
         actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close'))],
       ));
+
+  Future<void> _deleteAccount(BuildContext context) async {
+    final confirmed = await showDialog<bool>(context: context, builder: (_) => AlertDialog(title: const Text('Delete account?'), content: const Text('This permanently removes your Nimzo profile and data.'), actions: [TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')), FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Delete'))]));
+    if (confirmed != true || !context.mounted) return;
+    try {
+      await RepositoryFactory.auth().deleteAccount();
+    } catch (exception) {
+      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(exception.toString())));
+    }
+  }
 }
 
 class ProfileStat extends StatelessWidget {

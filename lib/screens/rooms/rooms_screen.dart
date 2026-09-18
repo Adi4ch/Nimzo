@@ -20,7 +20,7 @@ class RoomsScreen extends StatefulWidget {
 class _RoomsScreenState extends State<RoomsScreen> {
   int category = 0;
   final categories = const ['All', 'Popular', 'New', 'Music', 'Chat'];
-  List<NimzoRoom> rooms = DemoData.rooms;
+  List<NimzoRoom> rooms = const [];
 
   @override
   void initState() {
@@ -32,9 +32,9 @@ class _RoomsScreenState extends State<RoomsScreen> {
     try {
       final loaded = await RepositoryFactory.rooms()
           .getRooms(category: categories[category]);
-      if (mounted && loaded.isNotEmpty) setState(() => rooms = loaded);
+      if (mounted) setState(() => rooms = loaded);
     } catch (_) {
-      // Keep the local catalog when the project is not configured or seeded.
+      if (!RepositoryFactory.usesSupabase && mounted) setState(() => rooms = DemoData.rooms);
     }
   }
 

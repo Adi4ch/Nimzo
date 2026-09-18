@@ -109,7 +109,7 @@ class _WalletScreenState extends State<WalletScreen> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Recharge demo coins',
+                      const Text('Recharge virtual coins',
                           style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w800,
@@ -122,12 +122,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                 try {
                                   final userId =
                                       RepositoryFactory.auth().currentUser?.id;
-                                  if (userId == null ||
-                                      !RepositoryFactory.usesSupabase) {
-                                    setState(() => balance += amount);
-                                    Navigator.pop(context);
-                                    return;
-                                  }
+                                  if (userId == null || !RepositoryFactory.usesSupabase) throw StateError('A connected Supabase account is required.');
                                   final wallet =
                                       await RepositoryFactory.wallet()
                                           .getWallet(userId);
@@ -144,7 +139,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(
                                             content: Text(
-                                                'Demo recharge server-side only: $exception')));
+                                                exception.toString())));
                                 }
                                 if (context.mounted) Navigator.pop(context);
                                 if (mounted) await _loadWallet();
