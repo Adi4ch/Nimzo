@@ -49,6 +49,7 @@ returns public.gift_events language plpgsql security definer set search_path = p
 declare sender uuid := auth.uid(); gift public.gifts; wallet public.wallets; event_row public.gift_events;
 begin
   if sender is null then raise exception 'Authentication required'; end if;
+  if request_key is null or length(trim(request_key)) = 0 then raise exception 'Idempotency key required'; end if;
   select * into event_row from public.gift_events where idempotency_key = request_key;
   if event_row.id is not null then return event_row; end if;
   if target_quantity not between 1 and 99 then raise exception 'Invalid quantity'; end if;
@@ -65,11 +66,14 @@ $$;
 
 create or replace function public.play_fruit_rush(target_game uuid, target_stake bigint, request_key text)
 returns jsonb language plpgsql security definer set search_path = public as $$
-declare player uuid := auth.uid(); wallet public.wallets; reward bigint; symbols jsonb; result_row public.game_results;
+declare player uuid := auth.uid(); wallet public.wallets; reward bigint; symbols jsonb; result_row public.game_results; selected_game public.games; session_row public.game_sessions;
 begin
   if player is null then raise exception 'Authentication required'; end if;
+  if request_key is null or length(trim(request_key)) = 0 then raise exception 'Idempotency key required'; end if;
   select * into result_row from public.game_results where idempotency_key = request_key;
   if result_row.id is not null then return jsonb_build_object('id', result_row.id, 'reward', result_row.reward, 'result', result_row.result); end if;
+  select * into selected_game from public.games where id = target_game and name = 'Fruit Rush';
+  if selected_game.id is null then raise exception 'Fruit Rush game not found'; end if;
   if target_stake < 1 then raise exception 'Invalid stake'; end if;
   select * into wallet from public.wallets where user_id = player for update;
   if wallet.balance < target_stake then raise exception 'Insufficient virtual coins'; end if;
@@ -77,6 +81,8 @@ begin
   reward := case when symbols->0 = symbols->1 and symbols->1 = symbols->2 then target_stake * 5 when symbols->0 = symbols->1 or symbols->1 = symbols->2 then target_stake * 2 else 0 end;
   update public.wallets set balance = balance - target_stake + reward, updated_at = now() where id = wallet.id;
   insert into public.wallet_transactions(wallet_id, type, amount, description) values (wallet.id, 'game_win', reward - target_stake, 'Fruit Rush virtual play');
+  insert into public.game_sessions(game_id, user_id, ended_at, status) values (target_game, player, now(), 'finished') returning * into session_row;
+  insert into public.game_transactions(session_id, amount, type) values (session_row.id, target_stake, 'stake'), (session_row.id, reward, 'reward');
   insert into public.game_results(idempotency_key, game_id, user_id, stake, reward, result) values (request_key, target_game, player, target_stake, reward, jsonb_build_object('symbols', symbols)) returning * into result_row;
   return jsonb_build_object('id', result_row.id, 'reward', reward, 'result', result_row.result);
 end;
