@@ -21,208 +21,58 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   final social = RepositoryFactory.social();
   final liked = <String>{};
   final followed = <String>{};
-  int feedMode = 0;
   late Future<List<SocialPost>> feed;
   StreamSubscription<SocialPost>? postSubscription;
 
   @override
-  void initState() {
-    super.initState();
-    feed = loadFeed();
-    postSubscription = social.watchPosts().listen((_) {
-      if (mounted) setState(() => feed = loadFeed());
-    });
-  }
+  void initState() { super.initState(); feed = loadFeed(); postSubscription = social.watchPosts().listen((_) { if (mounted) setState(() => feed = loadFeed()); }); }
 
   @override
-  void dispose() {
-    postSubscription?.cancel();
-    social.dispose();
-    super.dispose();
-  }
+  void dispose() { postSubscription?.cancel(); social.dispose(); super.dispose(); }
 
   Future<List<SocialPost>> loadFeed() async {
-    try {
-      final loaded = await social.getFeed(followingOnly: feedMode == 1);
-      return loaded.isEmpty && feedMode == 0 ? DemoData.posts : loaded;
-    } catch (_) {
-      return DemoData.posts;
-    }
+    try { final loaded = await social.getFeed(); return loaded.isEmpty ? DemoData.posts : loaded; } catch (_) { return DemoData.posts; }
   }
 
   Future<void> createPost() async {
     final text = TextEditingController();
-    final image = TextEditingController();
-    final value = await showDialog<(String, String?)>(
-        context: context,
-        builder: (context) => AlertDialog(
-                title: const Text('Create post'),
-                content: Column(mainAxisSize: MainAxisSize.min, children: [
-                  TextField(
-                      controller: text,
-                      maxLines: 4,
-                      decoration: const InputDecoration(
-                          hintText: 'What is on your mind?')),
-                  TextField(
-                      controller: image,
-                      decoration: const InputDecoration(
-                          labelText: 'Image URL (optional)'))
-                ]),
-                actions: [
-                  TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Cancel')),
-                  FilledButton(
-                      onPressed: () => Navigator.pop(context, (
-                            text.text.trim(),
-                            image.text.trim().isEmpty ? null : image.text.trim()
-                          )),
-                      child: const Text('Post'))
-                ]));
+    final value = await showDialog<String>(context: context, builder: (context) => AlertDialog(title: const Text('Create post'), content: TextField(controller: text, maxLines: 4, decoration: const InputDecoration(hintText: 'What is on your mind?')), actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')), FilledButton(onPressed: () => Navigator.pop(context, text.text.trim()), child: const Text('Post'))]));
     text.dispose();
-    image.dispose();
-    if (value == null || value.$1.isEmpty) return;
-    try {
-      await social.createPost(text: value.$1, imageUrl: value.$2);
-      if (mounted) setState(() => feed = loadFeed());
-    } catch (exception) {
-      if (mounted) showNimzoNotice(context, exception.toString());
-    }
+    if (value == null || value.isEmpty) return;
+    try { await social.createPost(text: value); if (mounted) setState(() => feed = loadFeed()); } catch (exception) { if (mounted) showNimzoNotice(context, exception.toString()); }
   }
 
   Future<void> addComment(SocialPost post) async {
     final text = TextEditingController();
-    final value = await showDialog<String>(
-        context: context,
-        builder: (context) => AlertDialog(
-                title: const Text('Comment'),
-                content: TextField(
-                    controller: text,
-                    decoration:
-                        const InputDecoration(hintText: 'Write a comment')),
-                actions: [
-                  TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Cancel')),
-                  FilledButton(
-                      onPressed: () => Navigator.pop(context, text.text.trim()),
-                      child: const Text('Send'))
-                ]));
+    final value = await showDialog<String>(context: context, builder: (context) => AlertDialog(title: const Text('Comment'), content: TextField(controller: text, decoration: const InputDecoration(hintText: 'Write a comment')), actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')), FilledButton(onPressed: () => Navigator.pop(context, text.text.trim()), child: const Text('Send'))]));
     text.dispose();
     if (value == null || value.isEmpty) return;
-    try {
-      await social.addComment(NimzoComment(
-          id: 'comment-${DateTime.now().microsecondsSinceEpoch}',
-          postId: post.id,
-          userId: RepositoryFactory.auth().currentUser?.id ?? 'demo-user',
-          text: value));
-      if (mounted) showNimzoNotice(context, 'Comment added.');
-    } catch (exception) {
-      if (mounted) showNimzoNotice(context, exception.toString());
-    }
+    try { await social.addComment(NimzoComment(id: 'comment-${DateTime.now().microsecondsSinceEpoch}', postId: post.id, userId: RepositoryFactory.auth().currentUser?.id ?? 'demo-user', text: value)); if (mounted) showNimzoNotice(context, 'Comment added.'); } catch (exception) { if (mounted) showNimzoNotice(context, exception.toString()); }
   }
 
   @override
-  Widget build(BuildContext context) =>
-      ListView(padding: const EdgeInsets.all(20), children: [
+  Widget build(BuildContext context) => ListView(padding: const EdgeInsets.all(20), children: [
         const AppHeader('Discover'),
-        Align(
-            alignment: Alignment.centerRight,
-            child: IconButton(
-                onPressed: createPost,
-                icon: const Icon(Icons.add_circle_outline, color: mint))),
-        Row(
-            children: ['For You', 'Following']
-                .asMap()
-                .entries
-                .map((entry) => Expanded(
-                    child: Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: InkWell(
-                            onTap: () => setState(() {
-                                  feedMode = entry.key;
-                                  feed = loadFeed();
-                                }),
-                            child: Container(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 10),
-                                decoration: BoxDecoration(
-                                    color: feedMode == entry.key
-                                        ? mint
-                                        : lightMint,
-                                    borderRadius: BorderRadius.circular(18)),
-                                child: Center(
-                                    child: Text(entry.value,
-                                        style: TextStyle(
-                                            color: feedMode == entry.key
-                                                ? Colors.white
-                                                : ink,
-                                            fontWeight: FontWeight.w700))))))))
-                .toList()),
+        Align(alignment: Alignment.centerRight, child: IconButton(onPressed: createPost, icon: const Icon(Icons.add_circle_outline, color: mint))),
+        Row(children: ['For You', 'Following', 'Videos'].asMap().entries.map((entry) => Expanded(child: Padding(padding: const EdgeInsets.only(right: 8), child: Container(padding: const EdgeInsets.symmetric(vertical: 10), decoration: BoxDecoration(color: entry.key == 0 ? mint : lightMint, borderRadius: BorderRadius.circular(18)), child: Center(child: Text(entry.value, style: TextStyle(color: entry.key == 0 ? Colors.white : ink, fontWeight: FontWeight.w700))))))).toList()),
         const SizedBox(height: 18),
-        FutureBuilder<List<SocialPost>>(
-            future: feed,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting)
-                return const Center(
-                    child: CircularProgressIndicator(color: mint));
-              final posts = snapshot.data ?? const <SocialPost>[];
-              if (posts.isEmpty)
-                return const Padding(
-                    padding: EdgeInsets.all(30), child: Text('No posts yet.'));
-              return Column(children: [for (final post in posts) _post(post)]);
-            }),
+          FutureBuilder<List<SocialPost>>(future: feed, builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator(color: mint));
+            final posts = snapshot.data ?? const <SocialPost>[];
+            if (posts.isEmpty) return const Padding(padding: EdgeInsets.all(30), child: Text('No posts yet.'));
+            return Column(children: [for (final post in posts) _post(post)]);
+          }),
       ]);
 
-  Widget _post(SocialPost post) => SocialPostCard(
-        text: post.text,
+        Widget _post(SocialPost post) => SocialPostCard(
+          text: post.text,
         isLiked: liked.contains(post.id),
         isFollowed: followed.contains(post.userId),
-        onLike: () async {
-          final isLiked = liked.contains(post.id);
-          setState(() => isLiked ? liked.remove(post.id) : liked.add(post.id));
-          try {
-            await (isLiked
-                ? social.unlikePost(post.id)
-                : social.likePost(post.id));
-          } catch (_) {}
-        },
-        onFollow: () async {
-          final isFollowed = followed.contains(post.userId);
-          setState(() => isFollowed
-              ? followed.remove(post.userId)
-              : followed.add(post.userId));
-          try {
-            await (isFollowed
-                ? social.unfollowUser(post.userId)
-                : social.followUser(post.userId));
-          } catch (_) {}
-        },
+        onLike: () async { final isLiked = liked.contains(post.id); setState(() => isLiked ? liked.remove(post.id) : liked.add(post.id)); try { await (isLiked ? social.unlikePost(post.id) : social.likePost(post.id)); } catch (_) {} },
+        onFollow: () async { final isFollowed = followed.contains(post.userId); setState(() => isFollowed ? followed.remove(post.userId) : followed.add(post.userId)); try { await (isFollowed ? social.unfollowUser(post.userId) : social.followUser(post.userId)); } catch (_) {} },
         onComment: () => addComment(post),
-        onShare: () async {
-          try {
-            await social.sharePost(post.id);
-            if (mounted) showNimzoNotice(context, 'Post shared.');
-          } catch (exception) {
-            if (mounted) showNimzoNotice(context, exception.toString());
-          }
-        },
-        onReport: () async {
-          try {
-            await social.report(
-                targetType: 'post', targetId: post.id, reason: 'other');
-            if (mounted) showNimzoNotice(context, 'Report submitted.');
-          } catch (exception) {
-            if (mounted) showNimzoNotice(context, exception.toString());
-          }
-        },
-        onBlock: () async {
-          try {
-            await social.blockUser(post.userId);
-            if (mounted) setState(() => feed = loadFeed());
-          } catch (exception) {
-            if (mounted) showNimzoNotice(context, exception.toString());
-          }
-        },
+        onShare: () async { try { await social.sharePost(post.id); if (mounted) showNimzoNotice(context, 'Post shared.'); } catch (exception) { if (mounted) showNimzoNotice(context, exception.toString()); } },
+        onReport: () async { try { await social.report(targetType: 'post', targetId: post.id, reason: 'other'); if (mounted) showNimzoNotice(context, 'Report submitted.'); } catch (exception) { if (mounted) showNimzoNotice(context, exception.toString()); } },
+        onBlock: () async { try { await social.blockUser(post.userId); if (mounted) setState(() => feed = loadFeed()); } catch (exception) { if (mounted) showNimzoNotice(context, exception.toString()); } },
       );
 }

@@ -10,7 +10,10 @@ class SupabaseBootstrap {
   static Future<void> initialize() async {
     if (!SupabaseConfig.isConfigured) return;
     try {
-      await Supabase.initialize(url: SupabaseConfig.url, anonKey: SupabaseConfig.anonKey);
+      await Supabase.initialize(
+        url: SupabaseConfig.url,
+        publishableKey: SupabaseConfig.publishableKey,
+      );
       _initialized = true;
     } catch (_) {
       _initialized = false;
