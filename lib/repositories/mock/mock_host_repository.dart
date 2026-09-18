@@ -23,4 +23,13 @@ class MockHostRepository implements HostRepository {
 
   @override
   Future<Map<String, dynamic>> getStatistics(String userId) async => {'gifts_received': 0, 'rooms_hosted': 0};
+
+  @override
+  Future<List<Map<String, dynamic>>> getRecentActivity(String userId) async => const [];
+
+  @override
+  Future<List<Map<String, dynamic>>> getAgencies() async => const [{'id': 'agency-1', 'name': 'Nimzo Agency', 'description': 'Community hosts', 'status': 'active'}];
+
+  @override
+  Future<void> applyToAgency(String agencyId) async {}
 }

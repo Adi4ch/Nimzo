@@ -4,6 +4,7 @@ import '../../models/room.dart';
 import '../../repositories/mock/demo_data.dart';
 import '../../repositories/repository_factory.dart';
 import '../../screens/room/voice_room_screen.dart';
+import 'room_manager_screen.dart';
 import '../../theme/nimzo_theme.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/avatar.dart';
@@ -66,11 +67,7 @@ class _RoomsScreenState extends State<RoomsScreen> {
               leading: const NimzoAvatar(),
               title: Text(rooms[index].name, style: const TextStyle(fontWeight: FontWeight.w800)),
               subtitle: const Text('Sing  |  Dance  |  Enjoy  |  2.4K', style: TextStyle(color: muted)),
-              trailing: FilledButton(
-                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => VoiceRoomScreen(roomId: rooms[index].id, name: rooms[index].name))),
-                style: FilledButton.styleFrom(backgroundColor: mint),
-                child: const Text('Join'),
-              ),
+              trailing: Row(mainAxisSize: MainAxisSize.min, children: [IconButton(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => RoomManagerScreen(roomId: rooms[index].id))), icon: const Icon(Icons.admin_panel_settings_outlined, color: mint)), FilledButton(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => VoiceRoomScreen(roomId: rooms[index].id, name: rooms[index].name))), style: FilledButton.styleFrom(backgroundColor: mint), child: const Text('Join'))]),
             ),
           ),
         ),

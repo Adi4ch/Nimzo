@@ -25,6 +25,27 @@ class SupabaseGiftRepository implements GiftRepository {
   }
 
   @override
+  Future<Map<String, int>> getInventory() async {
+    final rows = await _client.from('gift_inventory').select('gift_id, quantity').eq('user_id', _client.auth.currentUser!.id);
+    return {for (final row in rows) row['gift_id'].toString(): (row['quantity'] as num? ?? 0).toInt()};
+  }
+
+  @override
+  Future<Set<String>> getFavorites() async {
+    final rows = await _client.from('gift_favorites').select('gift_id').eq('user_id', _client.auth.currentUser!.id);
+    return rows.map((row) => row['gift_id'].toString()).toSet();
+  }
+
+  @override
+  Future<List<GiftEvent>> getRecent({int limit = 20}) async {
+    final rows = await _client.from('gift_events').select().eq('sender_id', _client.auth.currentUser!.id).order('created_at', ascending: false).limit(limit);
+    return rows.map((row) => GiftEvent.fromMap(Map<String, dynamic>.from(row))).toList();
+  }
+
+  @override
+  Future<void> setFavorite(String giftId, bool favorite) async { await _client.rpc('toggle_gift_favorite', params: {'target_gift': giftId, 'should_favorite': favorite}); }
+
+  @override
   Future<GiftEvent> sendGift({required String roomId, required String giftId, String? receiverId, required int quantity, required String idempotencyKey}) async {
     final row = await _client.rpc('send_virtual_gift', params: {'target_room': roomId, 'target_gift': giftId, 'target_receiver': receiverId, 'target_quantity': quantity, 'request_key': idempotencyKey});
     return GiftEvent.fromMap(Map<String, dynamic>.from(row as Map));

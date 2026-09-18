@@ -43,4 +43,22 @@ class SupabaseHostRepository implements HostRepository {
     final rooms = await _client.from('rooms').select('id').eq('host_id', userId);
     return {'gifts_received': gifts.fold<int>(0, (sum, row) => sum + (row['total_cost'] as num? ?? 0).toInt()), 'rooms_hosted': rooms.length};
   }
+
+  @override
+  Future<List<Map<String, dynamic>>> getRecentActivity(String userId) async {
+    final rooms = await _client.from('rooms').select('id').eq('host_id', userId);
+    final roomIds = rooms.map((row) => row['id'].toString()).toList();
+    if (roomIds.isEmpty) return const [];
+    final rows = await _client.from('room_activities').select().inFilter('room_id', roomIds).order('created_at', ascending: false).limit(20);
+    return rows.map((row) => Map<String, dynamic>.from(row)).toList();
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getAgencies() async {
+    final rows = await _client.from('agencies').select().inFilter('status', ['pending', 'active']).order('name');
+    return rows.map((row) => Map<String, dynamic>.from(row)).toList();
+  }
+
+  @override
+  Future<void> applyToAgency(String agencyId) async { await _client.rpc('apply_to_agency', params: {'target_agency': agencyId}); }
 }

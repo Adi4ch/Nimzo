@@ -12,4 +12,11 @@ abstract class RoomRepository {
   Stream<List<RoomSeat>> watchSeats(String roomId);
   Future<void> disposeRoom(String roomId);
   Stream<NimzoRoom> watchRoom(String roomId);
+  Future<NimzoRoom> updateRoomSettings({required String roomId, required String name, required String subtitle, required String description, String? backgroundUrl});
+  Future<List<Map<String, dynamic>>> getActivities(String roomId);
+  Future<List<Map<String, dynamic>>> getRanking(String roomId, {String period = 'weekly'});
+  Future<List<String>> getModerators(String roomId);
+  Future<List<Map<String, dynamic>>> getSanctions(String roomId);
+  Future<void> assignModerator(String roomId, String userId, bool assign);
+  Future<void> manageMember({required String roomId, required String userId, required String action, int? durationMinutes});
 }

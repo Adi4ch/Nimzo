@@ -6,6 +6,7 @@ import '../../theme/nimzo_theme.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/menu_tile.dart';
 import '../host/host_center_screen.dart';
+import '../gifts/gift_center_screen.dart';
 import '../platform/platform_screen.dart';
 import 'settings_screen.dart';
 
@@ -68,6 +69,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 22),
             MenuTile('Host Center', Icons.workspace_premium, onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HostCenterScreen()))),
             MenuTile('VIP, Mall & Tasks', Icons.auto_awesome, onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PlatformScreen()))),
+            MenuTile('Gift Bag', Icons.card_giftcard, onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GiftCenterScreen()))),
             const MenuTile('My Wallet', Icons.account_balance_wallet),
             MenuTile('Settings', Icons.settings, onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()))),
             const MenuTile('Help & Support', Icons.help_outline),

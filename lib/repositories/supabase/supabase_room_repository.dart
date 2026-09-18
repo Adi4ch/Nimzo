@@ -83,4 +83,40 @@ class SupabaseRoomRepository implements RoomRepository {
     }
     return controller.stream;
   }
+
+  @override
+  Future<NimzoRoom> updateRoomSettings({required String roomId, required String name, required String subtitle, required String description, String? backgroundUrl}) async {
+    final row = await _client.rpc('update_room_settings', params: {'target_room': roomId, 'room_name': name, 'room_subtitle': subtitle, 'room_description': description, 'room_background': backgroundUrl});
+    return NimzoRoom.fromMap(row);
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getActivities(String roomId) async {
+    final rows = await _client.from('room_activities').select().eq('room_id', roomId).order('created_at', ascending: false).limit(50);
+    return rows.map((row) => Map<String, dynamic>.from(row)).toList();
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getRanking(String roomId, {String period = 'weekly'}) async {
+    final rows = await _client.from('rankings').select().eq('period', period).eq('kind', 'rooms').eq('subject_id', roomId).order('rank');
+    return rows.map((row) => Map<String, dynamic>.from(row)).toList();
+  }
+
+  @override
+  Future<List<String>> getModerators(String roomId) async {
+    final rows = await _client.from('room_moderators').select('user_id').eq('room_id', roomId);
+    return rows.map((row) => row['user_id'].toString()).toList();
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getSanctions(String roomId) async {
+    final rows = await _client.from('room_sanctions').select().eq('room_id', roomId).order('created_at', ascending: false).limit(50);
+    return rows.map((row) => Map<String, dynamic>.from(row)).toList();
+  }
+
+  @override
+  Future<void> assignModerator(String roomId, String userId, bool assign) async { await _client.rpc('assign_room_moderator', params: {'target_room': roomId, 'target_user': userId, 'should_assign': assign}); }
+
+  @override
+  Future<void> manageMember({required String roomId, required String userId, required String action, int? durationMinutes}) async { await _client.rpc('manage_room_member', params: {'target_room': roomId, 'target_user': userId, 'action_name': action, 'duration_minutes': durationMinutes}); }
 }

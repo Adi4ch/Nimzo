@@ -4,6 +4,7 @@ import '../../models/host_profile.dart';
 import '../../repositories/repository_factory.dart';
 import '../../theme/nimzo_theme.dart';
 import '../../widgets/menu_tile.dart';
+import 'agency_screen.dart';
 
 class HostCenterScreen extends StatefulWidget {
   const HostCenterScreen({super.key});
@@ -20,7 +21,7 @@ class _HostCenterScreenState extends State<HostCenterScreen> {
 
   void _refresh() {
     final userId = RepositoryFactory.auth().currentUser?.id;
-    data = userId == null ? Future<List<dynamic>>.value(const [null, null, <String, dynamic>{}]) : Future.wait([RepositoryFactory.host().getHostProfile(userId), RepositoryFactory.host().getAgency(userId), RepositoryFactory.host().getStatistics(userId)]);
+    data = userId == null ? Future<List<dynamic>>.value(const [null, null, <String, dynamic>{}, <Map<String, dynamic>>[]]) : Future.wait([RepositoryFactory.host().getHostProfile(userId), RepositoryFactory.host().getAgency(userId), RepositoryFactory.host().getStatistics(userId), RepositoryFactory.host().getRecentActivity(userId)]);
   }
 
   Future<void> _createAgency() async {
@@ -45,6 +46,7 @@ class _HostCenterScreenState extends State<HostCenterScreen> {
           final host = snapshot.data?[0] as HostProfile?;
           final agency = snapshot.data?[1] as Map<String, dynamic>?;
           final statistics = snapshot.data?[2] as Map<String, dynamic>? ?? const {};
+          final activity = snapshot.data?[3] as List<Map<String, dynamic>>? ?? const [];
           return ListView(padding: const EdgeInsets.all(20), children: [
             Container(padding: const EdgeInsets.all(20), decoration: BoxDecoration(color: lightMint, borderRadius: BorderRadius.circular(22)), child: Row(children: [
               const Icon(Icons.workspace_premium, color: mint, size: 42),
@@ -54,7 +56,10 @@ class _HostCenterScreenState extends State<HostCenterScreen> {
             const SizedBox(height: 20),
             Row(children: [Expanded(child: _stat('Gifts received', '${statistics['gifts_received'] ?? 0} coins')), Expanded(child: _stat('Rooms hosted', '${statistics['rooms_hosted'] ?? 0}'))]),
             const SizedBox(height: 12),
-            if (agency == null) FilledButton.icon(onPressed: _createAgency, icon: const Icon(Icons.business), label: const Text('Create agency')) else Card(child: ListTile(leading: const Icon(Icons.business, color: mint), title: Text(agency['name']?.toString() ?? 'Agency'), subtitle: Text('Status: ${agency['status'] ?? 'pending'}'))),
+            const Text('Recent host activity', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: ink)),
+            if (activity.isEmpty) const Text('No host activity yet.', style: TextStyle(color: muted)) else ...activity.take(5).map((item) => ListTile(dense: true, leading: const Icon(Icons.history, color: mint), title: Text(item['activity_type']?.toString() ?? 'Activity'), subtitle: Text(item['message']?.toString() ?? ''))),
+            const SizedBox(height: 12),
+            if (agency == null) Row(children: [Expanded(child: FilledButton.icon(onPressed: _createAgency, icon: const Icon(Icons.business), label: const Text('Create agency'))), const SizedBox(width: 8), IconButton(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AgencyScreen())), icon: const Icon(Icons.search, color: mint))]) else Card(child: ListTile(onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AgencyScreen())), leading: const Icon(Icons.business, color: mint), title: Text(agency['name']?.toString() ?? 'Agency'), subtitle: Text('Status: ${agency['status'] ?? 'pending'}'))),
             const MenuTile('Host Dashboard', Icons.dashboard),
             const MenuTile('Earnings', Icons.insights),
             const MenuTile('Host Guidelines', Icons.menu_book),
