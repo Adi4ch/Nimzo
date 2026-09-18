@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../repositories/mock/demo_data.dart';
 import '../../screens/room/voice_room_screen.dart';
 import '../../theme/nimzo_theme.dart';
 import '../../widgets/app_header.dart';
@@ -15,7 +16,6 @@ class RoomsScreen extends StatefulWidget {
 class _RoomsScreenState extends State<RoomsScreen> {
   int category = 0;
   final categories = const ['All', 'Popular', 'New', 'Music', 'Chat'];
-  final rooms = const ['Chill Vibes', 'Music Room', 'Friendship Room', 'Gaming Zone', 'Love & Relationship', 'Study & Career'];
 
   @override
   Widget build(BuildContext context) => Column(children: [
@@ -39,14 +39,14 @@ class _RoomsScreenState extends State<RoomsScreen> {
         Expanded(
           child: ListView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 20),
-            itemCount: rooms.length,
+            itemCount: DemoData.rooms.length,
             itemBuilder: (_, index) => ListTile(
               contentPadding: const EdgeInsets.symmetric(vertical: 7),
               leading: const NimzoAvatar(),
-              title: Text(rooms[index], style: const TextStyle(fontWeight: FontWeight.w800)),
+              title: Text(DemoData.rooms[index].name, style: const TextStyle(fontWeight: FontWeight.w800)),
               subtitle: const Text('Sing  |  Dance  |  Enjoy  |  2.4K', style: TextStyle(color: muted)),
               trailing: FilledButton(
-                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => VoiceRoomScreen(name: rooms[index]))),
+                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => VoiceRoomScreen(name: DemoData.rooms[index].name))),
                 style: FilledButton.styleFrom(backgroundColor: mint),
                 child: const Text('Join'),
               ),

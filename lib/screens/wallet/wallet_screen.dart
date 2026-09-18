@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../models/wallet_transaction.dart';
+import '../../repositories/mock/demo_data.dart';
 import '../../theme/nimzo_theme.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/coin_balance_card.dart';
@@ -13,16 +15,17 @@ class WalletScreen extends StatefulWidget {
 }
 
 class _WalletScreenState extends State<WalletScreen> {
-  int balance = 12450;
+  int balance = DemoData.wallet.balance;
 
   @override
   Widget build(BuildContext context) => ListView(padding: const EdgeInsets.all(20), children: [
         const AppHeader('Wallet'),
         CoinBalanceCard(balance: balance, onRecharge: () => _recharge(context)),
         const SectionHeader('Recent Transactions'),
-        for (final item in const ['Recharge  +1,000 Coins', 'Game Win  +250 Coins', 'Room Gift  +500 Coins', 'Withdraw  -3,000 Coins'])
-          ListTile(leading: const CircleAvatar(backgroundColor: lightMint, child: Icon(Icons.receipt_long, color: mint)), title: Text(item, style: const TextStyle(fontWeight: FontWeight.w700))),
+          for (final transaction in DemoData.walletTransactions) _transactionTile(transaction),
       ]);
+
+        Widget _transactionTile(WalletTransaction transaction) => ListTile(leading: const CircleAvatar(backgroundColor: lightMint, child: Icon(Icons.receipt_long, color: mint)), title: Text(transaction.description, style: const TextStyle(fontWeight: FontWeight.w700)));
 
   void _recharge(BuildContext context) => showModalBottomSheet<void>(
         context: context,

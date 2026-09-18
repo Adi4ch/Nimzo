@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../repositories/mock/demo_data.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/room_card.dart';
 import '../../widgets/section_header.dart';
@@ -22,8 +23,8 @@ class HomeScreen extends StatelessWidget {
           ]),
         ),
         const SectionHeader('Featured Rooms'),
-        const RoomCardRow(['Chill Vibes', 'Music Zone', 'Friends Talk']),
+        RoomCardRow(DemoData.featuredRooms),
         const SectionHeader('More Rooms'),
-        const RoomCardRow(['Ludo Lounge', 'Carrom Club', '8 Ball Pool', 'Study Circle']),
+        RoomCardRow(DemoData.moreRooms),
       ]);
 }

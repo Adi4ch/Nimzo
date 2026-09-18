@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../models/game.dart';
 import '../screens/games/game_detail_screen.dart';
 import '../theme/nimzo_theme.dart';
 
 class GameCard extends StatelessWidget {
-  final String name;
+  final NimzoGame game;
 
-  const GameCard({super.key, required this.name});
+  const GameCard({super.key, required this.game});
 
   @override
   Widget build(BuildContext context) => Card(
@@ -14,10 +15,10 @@ class GameCard extends StatelessWidget {
         color: lightMint,
         child: ListTile(
           leading: const CircleAvatar(backgroundColor: Colors.white, child: Icon(Icons.sports_esports, color: mint)),
-          title: Text(name, style: const TextStyle(fontWeight: FontWeight.w800)),
+          title: Text(game.name, style: const TextStyle(fontWeight: FontWeight.w800)),
           subtitle: const Text('Play now  |  Demo coins'),
           trailing: const Icon(Icons.chevron_right),
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => GameDetailScreen(name: name))),
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => GameDetailScreen(name: game.name))),
         ),
       );
 }

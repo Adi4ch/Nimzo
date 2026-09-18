@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../repositories/mock/demo_data.dart';
 import '../../theme/nimzo_theme.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/menu_tile.dart';
@@ -14,10 +15,10 @@ class ProfileScreen extends StatelessWidget {
         const Row(children: [
           CircleAvatar(radius: 42, backgroundColor: lightMint, child: Icon(Icons.person, size: 45, color: mint)),
           SizedBox(width: 14),
-          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Nimzo User', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)), Text('ID: 12345678', style: TextStyle(color: muted)), SizedBox(height: 8), Text('Lv.5', style: TextStyle(color: mint, fontWeight: FontWeight.w800))]),
+          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(DemoData.currentUser.displayName, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)), Text('ID: ${DemoData.currentUser.id}', style: TextStyle(color: muted)), SizedBox(height: 8), Text('Lv.${DemoData.currentUser.level}', style: TextStyle(color: mint, fontWeight: FontWeight.w800))]),
         ]),
         const SizedBox(height: 18),
-        const Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [ProfileStat('256', 'Friends'), ProfileStat('4.2K', 'Followers'), ProfileStat('1.8K', 'Following')]),
+        Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [ProfileStat('${DemoData.currentUser.friendsCount}', 'Friends'), ProfileStat('${DemoData.currentUser.followersCount}', 'Followers'), ProfileStat('${DemoData.currentUser.followingCount}', 'Following')]),
         const SizedBox(height: 22),
         MenuTile('Host Center', Icons.workspace_premium, onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HostCenterScreen()))),
         const MenuTile('My Wallet', Icons.account_balance_wallet),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../models/game.dart';
+import '../../repositories/mock/demo_data.dart';
 import '../../theme/nimzo_theme.dart';
 import '../../widgets/game_card.dart';
 
@@ -13,7 +15,6 @@ class GameListScreen extends StatefulWidget {
 class _GameListScreenState extends State<GameListScreen> {
   int category = 0;
   final categories = const ['All', 'Board', 'Classic'];
-  final games = const ['Ludo', 'Carrom', '8'];
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -28,7 +29,9 @@ class _GameListScreenState extends State<GameListScreen> {
               ChoiceChip(label: Text(categories[index]), selected: category == index, selectedColor: mint, labelStyle: TextStyle(color: category == index ? Colors.white : ink, fontWeight: FontWeight.w700), onSelected: (_) => setState(() => category = index)),
           ]),
           const SizedBox(height: 12),
-          for (final game in games) GameCard(name: game),
+          for (final game in _visibleGames) GameCard(game: game),
         ]),
       );
+
+  List<NimzoGame> get _visibleGames => category == 0 ? DemoData.games : DemoData.games.where((game) => game.category == categories[category]).toList();
 }
