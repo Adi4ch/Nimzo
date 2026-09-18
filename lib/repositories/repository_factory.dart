@@ -7,12 +7,14 @@ import 'game_repository.dart';
 import 'gift_repository.dart';
 import 'host_repository.dart';
 import 'notification_repository.dart';
+import 'platform_repository.dart';
 import 'mock/mock_auth_repository.dart';
 import 'mock/mock_chat_repository.dart';
 import 'mock/mock_game_repository.dart';
 import 'mock/mock_gift_repository.dart';
 import 'mock/mock_host_repository.dart';
 import 'mock/mock_notification_repository.dart';
+import 'mock/mock_platform_repository.dart';
 import 'mock/mock_room_repository.dart';
 import 'mock/mock_social_repository.dart';
 import 'mock/mock_user_repository.dart';
@@ -25,6 +27,7 @@ import 'supabase/supabase_game_repository.dart';
 import 'supabase/supabase_gift_repository.dart';
 import 'supabase/supabase_host_repository.dart';
 import 'supabase/supabase_notification_repository.dart';
+import 'supabase/supabase_platform_repository.dart';
 import 'supabase/supabase_room_repository.dart';
 import 'supabase/supabase_social_repository.dart';
 import 'supabase/supabase_user_repository.dart';
@@ -45,6 +48,7 @@ class RepositoryFactory {
   static GiftRepository gifts() => usesSupabase ? SupabaseGiftRepository() : MockGiftRepository();
   static HostRepository host() => usesSupabase ? SupabaseHostRepository() : MockHostRepository();
   static NotificationRepository notifications() => usesSupabase ? SupabaseNotificationRepository() : MockNotificationRepository();
+  static PlatformRepository platform() => usesSupabase ? SupabasePlatformRepository() : MockPlatformRepository();
 
   static SupabaseClient? get client => SupabaseBootstrap.client;
 }

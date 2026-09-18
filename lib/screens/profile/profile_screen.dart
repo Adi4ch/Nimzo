@@ -6,6 +6,8 @@ import '../../theme/nimzo_theme.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/menu_tile.dart';
 import '../host/host_center_screen.dart';
+import '../platform/platform_screen.dart';
+import 'settings_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -65,8 +67,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [ProfileStat('${user.friendsCount}', 'Friends'), ProfileStat('${user.followersCount}', 'Followers'), ProfileStat('${user.followingCount}', 'Following')]),
             const SizedBox(height: 22),
             MenuTile('Host Center', Icons.workspace_premium, onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HostCenterScreen()))),
+            MenuTile('VIP, Mall & Tasks', Icons.auto_awesome, onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PlatformScreen()))),
             const MenuTile('My Wallet', Icons.account_balance_wallet),
-            const MenuTile('Settings', Icons.settings),
+            MenuTile('Settings', Icons.settings, onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()))),
             const MenuTile('Help & Support', Icons.help_outline),
             const MenuTile('About Nimzo', Icons.info_outline),
             const SizedBox(height: 12),
